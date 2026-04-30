@@ -88,24 +88,19 @@
     .hl-brake  { border-color: var(--red) !important;    background: rgba(239,68,68,0.1) !important; }
 
     /* ─── ADAPTIVE HUD ─── */
-    /* idle: повний HUD */
     .hud { transition: all 0.4s ease; }
-    
-    /* cruise / anticipate: HUD стискається, менш помітний */
     .hud.hud-cruise .hud-main { padding: 6px 12px; }
     .hud.hud-cruise .hud-main-val { font-size: 28px; }
     .hud.hud-cruise .hud-main-label { font-size: 11px; }
     .hud.hud-cruise .hud-main-sub { display: none; }
     .hud.hud-cruise .hud-row { opacity: 0.35; pointer-events: none; }
 
-    /* react: HUD майже зникає — фокус на дорогу */
     .hud.hud-react .hud-main { padding: 4px 12px; border-color: var(--yellow); background: rgba(234,179,8,0.07); }
     .hud.hud-react .hud-main-val { font-size: 22px; }
     .hud.hud-react .hud-main-label { font-size: 10px; color: var(--yellow); }
     .hud.hud-react .hud-main-sub { display: none; }
     .hud.hud-react .hud-row { opacity: 0.2; pointer-events: none; }
 
-    /* brake: тільки гальмовий виділений */
     .hud.hud-brake .hud-main { padding: 4px 12px; border-color: var(--red); background: rgba(239,68,68,0.07); }
     .hud.hud-brake .hud-main-val { font-size: 22px; }
     .hud.hud-brake .hud-main-label { font-size: 10px; color: var(--red); }
@@ -134,7 +129,6 @@
     }
     .ruler-total-txt { color: #fff; font-size: 14px; margin-top: 2px; display: block; }
     
-    /* REVERSED DOM LAYOUT: Reaction at bottom, Brake on top */
     .ruler-zones {
       position: absolute; bottom: 56px; left: 0; right: 0;
       display: flex; flex-direction: column-reverse;
@@ -215,10 +209,6 @@
     .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; }
     .res-val { font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; }
 
-    .defs { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 14px; }
-    .defs p { margin-bottom: 8px; }
-    .defs strong { color: var(--blue); }
-
     .btn-ok {
       width: 100%; background: var(--blue); color: #fff;
       font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700;
@@ -294,7 +284,7 @@
     <div class="ruler" id="ruler">
       <div class="ruler-top-lbl">Разом<br><span class="ruler-total-txt" id="rulerTotal">25 м</span></div>
       <div class="ruler-zones" id="rulerZones">
-        <!-- Flex column-reverse: React is physically lower in DOM visually -->
+        <!-- Flex column-reverse -->
         <div class="rz-react" id="rzReact">
           <div class="rz-m" id="rzReactM">0 м</div>
           <div class="rz-lbl" id="rzReactL">Реакція</div>
@@ -321,7 +311,7 @@
             <div class="res-box-title">Ваш фактичний результат</div>
             <div class="res-row"><span>Час реакції:</span> <span class="res-val" id="rUserTime" style="color:var(--yellow)">0.0 с</span></div>
             <div class="res-row"><span>Шлях до зупинки:</span> <span class="res-val" id="rUserDist" style="color:#fff">0 м</span></div>
-            <div class="res-row"><span>Дистанція до об'єкта:</span> <span class="res-val" id="rUserMargin" style="color:var(--green)">+0 м</span></div>
+            <div class="res-row"><span>Залишок до переходу:</span> <span class="res-val" id="rUserMargin" style="color:var(--green)">+0 м</span></div>
           </div>
 
           <div class="res-box" style="border: 1px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.05);">
@@ -392,18 +382,22 @@ const ruler   = document.getElementById('ruler');
 /* ── Helpers ── */
 const CAR_W=30, CAR_H=52, CAR_R=6, PX_M=5.5, TREES=9;
 const DOT_BOTTOM=56; // px from bottom of ruler — matches car Y in canvas
-const SAFE_STOP_M = 12; // авто зупиняється за 12м до пішохода (безпечний буфер)
 
 /* ── State ── */
-const S={
-  phase:'idle',   // idle | cruise | anticipate | react | brake | done
-  kmh:50, total:0, react:0, brake:0,
-  roadOff:0, trees:[],
+const S = {
+  phase: 'idle',   // idle | cruise | anticipate | react | brake | done
+  kmh: 50, 
+  curMps: 0,       // Поточна фізична швидкість авто в м/с
+  total: 0, react: 0, brake: 0,
+  roadOff: 0, trees: [],
   
-  pedDist:0, pedX:0, targetPedX:0, obsActive:false, dangerStartDist:0,
+  pedDist: 0,      // Дистанція від носа авто до пішохідного переходу
+  pedX: 0, targetPedX: 0, 
+  obsActive: false, 
+  dangerStartDist: 0,
   
-  rTraveled:0, bTraveled:0, cruiseSec:0, userReactSec:0,
-  crashed:false, earlyBrake:false
+  rTraveled: 0, bTraveled: 0, cruiseSec: 0, userReactSec: 0,
+  crashed: false, earlyBrake: false
 };
 
 /* ── Signs ── */
@@ -466,27 +460,22 @@ function resize(){
 }
 window.addEventListener('resize',resize);
 
-/* ── Ruler: idle preview ── */
+/* ── Ruler ── */
 function rulerH(){ return ruler.getBoundingClientRect().height; }
 
 function rulerIdlePreview(){
   const rH=rulerH();
-  const avail=rH-DOT_BOTTOM-35; // Reserve space for top label
+  const avail=rH-DOT_BOTTOM-35; 
   const scale=Math.min(1, avail/(S.total*PX_M));
   const rpx=S.react*PX_M*scale;
   const bpx=S.brake*PX_M*scale;
 
-  rzReact.style.height=rpx+'px';
-  rzBrake.style.height=bpx+'px';
-  rzReactM.textContent=S.react+' м';
-  rzBrakeM.textContent=S.brake+' м';
-  rzReactM.classList.toggle('show', rpx>22);
-  rzBrakeM.classList.toggle('show', bpx>22);
-  rzReactL.classList.toggle('show', rpx>44);
-  rzBrakeL.classList.toggle('show', bpx>44);
+  rzReact.style.height=rpx+'px'; rzBrake.style.height=bpx+'px';
+  rzReactM.textContent=S.react+' м'; rzBrakeM.textContent=S.brake+' м';
+  rzReactM.classList.toggle('show', rpx>22); rzBrakeM.classList.toggle('show', bpx>22);
+  rzReactL.classList.toggle('show', rpx>44); rzBrakeL.classList.toggle('show', bpx>44);
 }
 
-/* ── Ruler: live update ── */
 function rulerLive(){
   if(S.phase==='idle' || S.phase==='cruise' || S.phase==='anticipate') return;
   const rH=rulerH();
@@ -496,14 +485,10 @@ function rulerLive(){
   const rpx=S.rTraveled*PX_M*scale;
   const bpx=S.bTraveled*PX_M*scale;
 
-  rzReact.style.height=rpx+'px';
-  rzBrake.style.height=bpx+'px';
-  rzReactM.textContent=Math.round(S.rTraveled)+' м';
-  rzBrakeM.textContent=Math.round(S.bTraveled)+' м';
-  rzReactM.classList.toggle('show', rpx>22);
-  rzBrakeM.classList.toggle('show', bpx>22);
-  rzReactL.classList.toggle('show', rpx>44);
-  rzBrakeL.classList.toggle('show', bpx>44);
+  rzReact.style.height=rpx+'px'; rzBrake.style.height=bpx+'px';
+  rzReactM.textContent=Math.round(S.rTraveled)+' м'; rzBrakeM.textContent=Math.round(S.bTraveled)+' м';
+  rzReactM.classList.toggle('show', rpx>22); rzBrakeM.classList.toggle('show', bpx>22);
+  rzReactL.classList.toggle('show', rpx>44); rzBrakeL.classList.toggle('show', bpx>44);
 }
 
 function rulerReset(){
@@ -513,23 +498,14 @@ function rulerReset(){
   rzReactL.classList.remove('show'); rzBrakeL.classList.remove('show');
 }
 
-/* ── Banner ── */
-function showBanner(type,txt){
-  bannerEl.className='banner show '+type;
-  bannerEl.textContent=txt;
-}
+/* ── Banner & HUD ── */
+function showBanner(type,txt){ bannerEl.className='banner show '+type; bannerEl.textContent=txt; }
 function hideBanner(){ bannerEl.className='banner'; }
-
-/* ── HUD cards ── */
 function hlReact(on){ cardReact.classList.toggle('hl-react',on); }
 function hlBrake(on){ cardBrake.classList.toggle('hl-brake',on); }
 
-/* ── Adaptive HUD ── */
 const hud = document.querySelector('.hud');
-function setHudMode(mode) {
-  // mode: '' | 'cruise' | 'react' | 'brake'
-  hud.className = 'hud' + (mode ? ' hud-' + mode : '');
-}
+function setHudMode(mode) { hud.className = 'hud' + (mode ? ' hud-' + mode : ''); }
 
 /* ── Start / Restart ── */
 function startSim(){
@@ -537,15 +513,14 @@ function startSim(){
   S.phase='cruise'; S.obsActive=false;
   S.rTraveled=0; S.bTraveled=0; S.cruiseSec=0; S.userReactSec=0;
   S.crashed=false; S.earlyBrake=false;
+  S.curMps = S.kmh * 1000 / 3600; // Автомобіль миттєво набирає задану швидкість
   
   rulerReset();
   hlReact(false); hlBrake(false); hideBanner();
   setHudMode('cruise');
   
-  btnGo.classList.add('hidden');
-  btnBrake.classList.add('active');
-  speedWrap.style.opacity='0.4';
-  speedWrap.style.pointerEvents='none';
+  btnGo.classList.add('hidden'); btnBrake.classList.add('active');
+  speedWrap.style.opacity='0.4'; speedWrap.style.pointerEvents='none';
 }
 btnGo.addEventListener('mousedown', startSim);
 btnGo.addEventListener('touchstart',e=>{e.preventDefault();startSim();});
@@ -555,7 +530,7 @@ function triggerBrake() {
     S.phase = 'brake'; S.earlyBrake = true;
     S.dangerStartDist = S.pedDist; S.rTraveled = 0; S.userReactSec = 0;
     const dpr = devicePixelRatio || 1, W = simCvs.width / dpr, roadW = Math.min(150, W * 0.55);
-    S.targetPedX = W/2 + roadW/2 + 5; // Ped stays safe on edge
+    S.targetPedX = W/2 + roadW/2 + 5; // Пішохід безпечно залишається на краю
     
     btnBrake.classList.remove('active'); hlBrake(true);
     setHudMode('brake');
@@ -576,8 +551,7 @@ btnRst.addEventListener('click',()=>{
   hlReact(false); hlBrake(false); hideBanner();
   setHudMode('');
   btnBrake.classList.remove('active');
-  speedWrap.style.opacity='1';
-  speedWrap.style.pointerEvents='auto';
+  speedWrap.style.opacity='1'; speedWrap.style.pointerEvents='auto';
   
   rulerIdlePreview();
   rulerDot.style.bottom=DOT_BOTTOM+'px';
@@ -587,25 +561,25 @@ btnRst.addEventListener('click',()=>{
 function showResult(){
   const rt = S.earlyBrake ? 0 : S.userReactSec;
   const totDist = S.rTraveled + S.bTraveled;
-  // Реальний запас = відстань до пішохода мінус безпечний буфер
-  const margin = S.dangerStartDist - totDist - SAFE_STOP_M;
+  const margin = Math.max(0, S.dangerStartDist - totDist);
 
   const resTitle = document.getElementById('resTitle');
   const resSub = document.getElementById('resSub');
 
   if (S.crashed) {
     resTitle.innerHTML = '❌ ЗІТКНЕННЯ!'; resTitle.style.color = 'var(--red)';
-    resSub.textContent = 'Ви не встигли зупинитися до перешкоди.';
+    resSub.textContent = 'Гальмовий шлях перевищив відстань до пішохідного переходу.';
   } else if (S.earlyBrake) {
     resTitle.innerHTML = '🏆 ВІДМІННО!'; resTitle.style.color = 'var(--green)';
     resSub.textContent = 'Ви передбачили небезпеку і загальмували заздалегідь.';
   } else {
     resTitle.innerHTML = '✅ БЕЗПЕЧНА ЗУПИНКА'; resTitle.style.color = 'var(--green)';
-    resSub.textContent = 'Ви встигли зреагувати та безпечно зупинитися.';
+    resSub.textContent = 'Ви встигли зреагувати та безпечно зупинитися до зебри.';
   }
 
   document.getElementById('rUserTime').textContent = rt.toFixed(2) + ' с';
   document.getElementById('rUserDist').textContent = Math.round(totDist) + ' м';
+  
   const marginEl = document.getElementById('rUserMargin');
   marginEl.textContent = S.crashed ? '0 м' : `+${Math.floor(margin)} м`;
   marginEl.style.color = S.crashed ? 'var(--red)' : 'var(--green)';
@@ -623,6 +597,7 @@ function rr(x,y,w,h,r){
   ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r);
   ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
+
 function drawCar(cx,cy,color,braking){
   ctx.save(); ctx.translate(cx,cy);
   ctx.fillStyle='rgba(0,0,0,0.38)'; rr(-CAR_W/2+2,-CAR_H/2+2,CAR_W,CAR_H,CAR_R); ctx.fill();
@@ -638,28 +613,40 @@ function drawCar(cx,cy,color,braking){
   ctx.restore();
 }
 
-function drawPedestrian(x, y, isWalking, phase) {
+function drawCrosswalk(cx, roadW, y) {
+  ctx.save();
+  ctx.fillStyle = '#e2e8f0';
+  const stripeW = 8;
+  const gap = 14;
+  const startX = cx - roadW/2 + 10;
+  for (let x = startX; x < cx + roadW/2 - 10; x += stripeW + gap) {
+    ctx.fillRect(x, y - 8, stripeW, 16);
+  }
+  ctx.restore();
+}
+
+function drawPedestrian(x, y, isWalking) {
   ctx.save();
   const t = Date.now();
-  const legSwing = isWalking ? Math.sin(t / 150) * 6 : 0;
-  const armSwing = isWalking ? Math.sin(t / 150 + Math.PI) * 4 : 0;
+  const legSwing = isWalking ? Math.sin(t / 100) * 8 : 0;
+  const armSwing = isWalking ? Math.sin(t / 100 + Math.PI) * 6 : 0;
 
   // Тінь
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath(); ctx.ellipse(x, y + 10, 8, 3, 0, 0, Math.PI*2); ctx.fill();
 
-  ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
   // Тіло
   ctx.beginPath(); ctx.moveTo(x, y - 2); ctx.lineTo(x, y + 4); ctx.stroke();
 
   // Ноги
-  ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x - 4 + legSwing, y + 11); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x + 4 - legSwing, y + 11); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x - 4 + legSwing, y + 12); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x + 4 - legSwing, y + 12); ctx.stroke();
 
   // Руки
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5 - armSwing, y + 4); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 5 + armSwing, y + 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5 - armSwing, y + 5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 5 + armSwing, y + 5); ctx.stroke();
 
   // Голова
   ctx.fillStyle = '#ffedd5';
@@ -667,34 +654,14 @@ function drawPedestrian(x, y, isWalking, phase) {
   ctx.beginPath(); ctx.arc(x, y - 6, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
 
   ctx.restore();
-
-  // Безпечна зона перед пішоходом (видима дистанція буфера)
-  if (phase === 'brake' || phase === 'done') {
-    const bufPx = SAFE_STOP_M * PX_M;
-    ctx.save();
-    ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
-    ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.rect(x - 18, y + 14, 36, bufPx);
-    ctx.fill(); ctx.stroke();
-    ctx.setLineDash([]);
-    // Підпис
-    ctx.font = 'bold 9px Barlow Condensed, sans-serif';
-    ctx.fillStyle = 'rgba(34,197,94,0.85)';
-    ctx.textAlign = 'center';
-    ctx.fillText(SAFE_STOP_M+' м', x, y + 14 + bufPx/2 + 4);
-    ctx.restore();
-  }
 }
 
 function drawCrashEffect(x, y) {
   ctx.save(); ctx.translate(x, y);
   ctx.fillStyle = '#ef4444'; ctx.beginPath();
-  for(let i=0; i<12; i++) { const r=i%2===0?35:15, a=(Math.PI*2/12)*i; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); } ctx.fill();
+  for(let i=0; i<12; i++) { const r=i%2===0?45:20, a=(Math.PI*2/12)*i; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); } ctx.fill();
   ctx.fillStyle = '#eab308'; ctx.beginPath();
-  for(let i=0; i<10; i++) { const r=i%2===0?18:8, a=(Math.PI*2/10)*i; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); } ctx.fill();
+  for(let i=0; i<10; i++) { const r=i%2===0?25:10, a=(Math.PI*2/10)*i; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); } ctx.fill();
   ctx.restore();
 }
 
@@ -705,9 +672,11 @@ function draw(){
 
   ctx.fillStyle='#052e16'; ctx.fillRect(0,0,W,H);
   ctx.fillStyle='#1e293b'; ctx.fillRect(cx-roadW/2,0,roadW,H);
+  
   ctx.strokeStyle='#334155'; ctx.lineWidth=2;
   ctx.beginPath(); ctx.moveTo(cx-roadW/2,0); ctx.lineTo(cx-roadW/2,H); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(cx+roadW/2,0); ctx.lineTo(cx+roadW/2,H); ctx.stroke();
+  
   ctx.strokeStyle='rgba(226,232,240,0.4)'; ctx.lineWidth=3;
   ctx.setLineDash([22,18]); ctx.lineDashOffset=-S.roadOff;
   ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
@@ -721,9 +690,14 @@ function draw(){
   });
 
   if(S.obsActive){
+    const pedY = carY - S.pedDist * PX_M;
+    
+    // Зебра на дорозі
+    drawCrosswalk(cx, roadW, pedY);
+
     if (S.phase !== 'anticipate') {
-      // DANGER LINE
-      const dangerY = carY + (S.rTraveled + S.bTraveled) * PX_M;
+      // ⚡ Лінія моменту небезпеки. Вона фіксується на дорозі і віддаляється від машини на rTraveled + bTraveled
+      const dangerY = carY - (S.pedDist - S.dangerStartDist) * PX_M;
       
       ctx.fillStyle = '#facc15'; ctx.fillRect(cx - roadW/2, dangerY, roadW, 3);
       ctx.font = 'bold 12px "Barlow Condensed", sans-serif'; 
@@ -747,8 +721,10 @@ function draw(){
       }
     }
 
-    const pedY = carY - S.pedDist * PX_M;
-    drawPedestrian(S.pedX, pedY, (S.phase !== 'done' && !S.crashed), S.phase);
+    // Пішохід
+    const isWalking = (S.phase === 'anticipate' && S.pedX > S.targetPedX) || (S.phase === 'react' && S.pedX > S.targetPedX);
+    drawPedestrian(S.pedX, pedY, isWalking);
+    
     if (S.crashed) drawCrashEffect(S.pedX, pedY);
   }
 
@@ -761,61 +737,78 @@ let lastT=0;
 function loop(ts){
   if(!lastT) lastT=ts;
   let dt=(ts-lastT)/1000; if(dt>.1)dt=.1; lastT=ts;
-  const mps=S.kmh*1000/3600;
 
-  let curMps = mps;
+  const maxMps = S.kmh * 1000 / 3600;
+
+  // Фізика сповільнення
   if (S.phase === 'brake') {
-    const decel = (mps*mps)/(2*S.brake);
-    curMps = Math.sqrt(Math.max(0, mps*mps - 2*decel*S.bTraveled));
+    // Деселерація береться з теоретичного гальмового шляху для даної швидкості
+    const decel = (maxMps * maxMps) / (2 * S.brake);
+    S.curMps -= decel * dt;
+    if (S.curMps <= 0) {
+      S.curMps = 0;
+      if (!S.crashed) {
+        S.phase = 'done';
+        btnBrake.classList.remove('active');
+        hlBrake(false); setHudMode('');
+        showBanner('done','✅ ЗУПИНКА!');
+        setTimeout(showResult, 1000);
+      }
+    }
   } else if (S.phase === 'done' || S.phase === 'idle') {
-    curMps = 0;
+    S.curMps = 0;
   }
 
-  function moveWorld(spd){
-    if (spd <= 0) return 0;
-    const px=spd*PX_M*dt;
-    S.roadOff=(S.roadOff+px)%40;
-    const dpr=devicePixelRatio||1, H=simCvs.height/dpr;
-    S.trees.forEach(t=>{ t.y+=px; if(t.y>H+40){ t.y=-40; t.side=Math.random()>.5?1:-1; } });
-    return px;
-  }
-
-  if (S.phase !== 'idle' && S.phase !== 'done') {
-    const px = moveWorld(curMps);
+  // Рух світу (інтегрування швидкості)
+  if (S.curMps > 0) {
+    const px = S.curMps * PX_M * dt;
+    S.roadOff = (S.roadOff + px) % 40;
     
+    const dpr=devicePixelRatio||1, H=simCvs.height/dpr;
+    S.trees.forEach(t => { 
+      t.y += px; 
+      if (t.y > H + 40) { t.y = -40; t.side = Math.random() > 0.5 ? 1 : -1; } 
+    });
+
     if (S.obsActive) {
-      S.pedDist -= curMps * dt;
+      S.pedDist -= S.curMps * dt;
+      
       if (S.phase !== 'anticipate') {
         if (S.phase === 'react') {
-           S.rTraveled += curMps * dt;
+           S.rTraveled += S.curMps * dt;
            S.userReactSec += dt;
         } else if (S.phase === 'brake') {
-           S.bTraveled += curMps * dt;
+           S.bTraveled += S.curMps * dt;
         }
       }
       
-      // Зіткнення — якщо учень не загальмував до буферної зони
-      if (S.pedDist <= SAFE_STOP_M * 0.3) {
-        S.pedDist = SAFE_STOP_M * 0.3; S.phase = 'done'; S.crashed = true;
-        hlBrake(false); hlReact(false); hideBanner();
-        setTimeout(showResult, 800);
+      // Фізичне зіткнення
+      if (S.pedDist <= 0) {
+        S.pedDist = 0;
+        if (S.curMps > 0 && !S.crashed) {
+          S.crashed = true; S.curMps = 0; S.phase = 'done';
+          hlBrake(false); hlReact(false); hideBanner();
+          setTimeout(showResult, 800);
+        }
       }
     }
   }
 
-  // State Logic
+  // Логіка стадій
   if (S.phase === 'cruise') {
     S.cruiseSec += dt;
     if (!S.obsActive && S.cruiseSec > 1.5 && Math.random() < dt * 0.5) {
       S.obsActive = true;
       S.rTraveled = 0; S.bTraveled = 0; S.userReactSec = 0;
+      
+      // Даємо 1.5 сек на реакцію + запас (до ідеального зупинного шляху)
       const triggerDist = S.total + 3;
-      S.pedDist = triggerDist + (mps * 1.5);
+      S.pedDist = triggerDist + (maxMps * 1.5);
+      
       const dpr=devicePixelRatio||1, W=simCvs.width/dpr, cx=W/2, roadW=Math.min(150,W*0.55);
-      // Пішохід стартує з узбіччя правого боку
-      S.pedX = cx + roadW/2 + 25;
-      // Зупиняється на правій чверті дороги (не посередині!)
-      S.targetPedX = cx + roadW * 0.18;
+      S.pedX = cx + roadW/2 + 25; // Спавн на узбіччі
+      S.targetPedX = cx + roadW * 0.18; // Підходить до краю
+      
       S.phase = 'anticipate';
       setHudMode('cruise');
       showBanner('warn', '👀 ОЦІНЮЙТЕ ОБСТАНОВКУ');
@@ -826,9 +819,10 @@ function loop(ts){
       S.phase = 'react';
       S.dangerStartDist = S.pedDist;
       S.rTraveled = 0; S.bTraveled = 0; S.userReactSec = 0;
-      // Пішохід заходить на дорогу — але лише до центру смуги, не далі
+      
       const dpr=devicePixelRatio||1, W=simCvs.width/dpr, cx=W/2, roadW=Math.min(150,W*0.55);
-      S.targetPedX = cx - roadW * 0.05; // трохи лівіше центру правої смуги
+      S.targetPedX = cx - roadW * 0.05; // Крок на дорогу
+      
       hlReact(true);
       setHudMode('react');
       showBanner('react','⚠️ РЕАКЦІЯ!');
@@ -843,23 +837,10 @@ function loop(ts){
       showBanner('brake','🛑 ГАЛЬМУЄ! ГАЛЬМОВИЙ ШЛЯХ…');
     }
   }
-  else if (S.phase === 'brake') {
-    // Зупинка: або швидкість = 0, або залишилось <= SAFE_STOP_M до пішохода
-    const nearPed = S.obsActive && S.pedDist <= SAFE_STOP_M;
-    if ((curMps <= 0.05 || nearPed) && !S.crashed) {
-      S.phase = 'done';
-      if (nearPed) S.pedDist = SAFE_STOP_M; // зафіксувати буфер
-      btnBrake.classList.remove('active');
-      hlBrake(false);
-      setHudMode('');
-      showBanner('done','✅ ЗУПИНКА!');
-      setTimeout(showResult, 1000);
-    }
-  }
 
-  // Pedestrian animation
+  // Анімація руху пішохода по осі X
   if (S.pedX > S.targetPedX) {
-     S.pedX -= 120 * dt;
+     S.pedX -= 80 * dt;
      if (S.pedX < S.targetPedX) S.pedX = S.targetPedX;
   }
 
