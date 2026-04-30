@@ -23,6 +23,7 @@
       --blue:    #3b82f6;
       --green:   #22c55e;
       --yellow:  #eab308;
+      --orange:  #f97316;
       --red:     #ef4444;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,7 +59,21 @@
     }
 
     /* ─── HUD ─── */
-    .hud { display: flex; flex-direction: column; padding: 8px 12px; gap: 8px; flex-shrink: 0; }
+    .hud { display: flex; flex-direction: column; padding: 12px; gap: 8px; flex-shrink: 0; background: var(--bg); }
+    
+    .hud-main {
+      background: var(--surface); border: 2px solid var(--blue); border-radius: 14px;
+      padding: 12px; text-align: center; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+      position: relative; overflow: hidden;
+    }
+    .hud-main::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--yellow), var(--red));
+    }
+    .hud-main-label { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: var(--blue); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+    .hud-main-val { font-family: 'Barlow Condensed', sans-serif; font-size: 42px; font-weight: 900; color: #fff; line-height: 1; margin: 4px 0; }
+    .hud-main-sub { font-size: 13px; color: var(--muted); font-weight: 500; }
+
     .hud-row { display: flex; gap: 8px; }
     .hud-card {
       flex: 1; background: var(--surface);
@@ -80,109 +95,83 @@
       overflow: hidden;
     }
 
-    /* ══════════════════════════════════
-       LEFT RULER — the hero element
-       Shows FULL height of screen split
-       into yellow (reaction) + red (brake)
-       growing from bottom up in real time
-    ══════════════════════════════════ */
+    /* ════ RULER ════ */
     .ruler {
-      width: 54px; flex-shrink: 0;
-      background: #070c18;
-      border-right: 2px solid var(--border);
-      position: relative; overflow: hidden;
+      width: 54px; flex-shrink: 0; background: #070c18;
+      border-right: 2px solid var(--border); position: relative; overflow: hidden;
     }
-
-    /* Pinned label at top */
     .ruler-top-lbl {
-      position: absolute; top: 0; left: 0; right: 0; z-index: 6;
-      text-align: center; padding: 4px 2px 0;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 8px; font-weight: 700;
-      color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px;
-      background: #070c18;
+      position: absolute; top: 0; left: 0; right: 0; z-index: 6; text-align: center; padding: 4px 2px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; background: #070c18;
+      border-bottom: 1px solid var(--border);
     }
-
-    /* Full-height zone container, bottom-anchored */
+    .ruler-total-txt { color: #fff; font-size: 14px; margin-top: 2px; display: block; }
+    
+    /* REVERSED DOM LAYOUT: Reaction at bottom, Brake on top */
     .ruler-zones {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      display: flex; flex-direction: column;
-      /* children: react on top, brake at bottom */
+      position: absolute; bottom: 56px; left: 0; right: 0;
+      display: flex; flex-direction: column-reverse;
     }
 
-    /* YELLOW — reaction zone (renders on top in column) */
     .rz-react {
       width: 100%; height: 0;
-      background: linear-gradient(to bottom, rgba(234,179,8,0.08), rgba(234,179,8,0.42));
-      border-top: 3px solid var(--yellow);
-      display: flex; flex-direction: column;
-      align-items: center; overflow: hidden;
+      background: linear-gradient(to top, rgba(234,179,8,0.08), rgba(234,179,8,0.42));
+      border-bottom: 3px solid var(--yellow);
+      display: flex; flex-direction: column-reverse; align-items: center; overflow: hidden;
       transition: height 0.06s linear;
     }
-    /* RED — brake zone (renders below react in column = bottom of screen) */
     .rz-brake {
       width: 100%; height: 0;
-      background: linear-gradient(to bottom, rgba(239,68,68,0.08), rgba(239,68,68,0.46));
-      border-top: 3px solid var(--red);
-      display: flex; flex-direction: column;
-      align-items: center; overflow: hidden;
+      background: linear-gradient(to top, rgba(239,68,68,0.08), rgba(239,68,68,0.46));
+      border-bottom: 3px solid var(--red);
+      display: flex; flex-direction: column-reverse; align-items: center; overflow: hidden;
       transition: height 0.06s linear;
     }
 
-    /* Distance text inside zone */
     .rz-m {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px; font-weight: 700;
-      margin-top: 5px; opacity: 0;
-      transition: opacity 0.25s;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700;
+      margin-bottom: 5px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     }
     .rz-m.show { opacity: 1; }
     .rz-react .rz-m { color: var(--yellow); }
     .rz-brake .rz-m { color: var(--red); }
 
-    /* Rotated zone label */
     .rz-lbl {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 8px; font-weight: 700; letter-spacing: 0.8px;
-      text-transform: uppercase;
-      writing-mode: vertical-lr; transform: rotate(180deg);
-      margin-top: 3px; opacity: 0; transition: opacity 0.3s;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.8px;
+      text-transform: uppercase; writing-mode: vertical-rl; transform: rotate(180deg);
+      margin-bottom: 3px; opacity: 0; transition: opacity 0.3s;
     }
     .rz-lbl.show { opacity: 0.65; }
     .rz-react .rz-lbl { color: var(--yellow); }
     .rz-brake .rz-lbl { color: var(--red); }
 
-    /* Blue dot = our car position */
     .ruler-dot {
       position: absolute; left: 6px; right: 6px; height: 4px;
       background: var(--blue); border-radius: 2px;
-      box-shadow: 0 0 10px var(--blue);
-      bottom: 56px; z-index: 8;
+      box-shadow: 0 0 10px var(--blue); bottom: 56px; z-index: 8;
     }
 
     /* ─── CANVAS ─── */
     .canvas-wrap { flex: 1; position: relative; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; }
 
-    /* Phase banner */
     .banner {
       position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px; font-weight: 700; letter-spacing: 0.8px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.8px;
       text-transform: uppercase; padding: 5px 18px; border-radius: 20px;
       pointer-events: none; white-space: nowrap; z-index: 10;
-      opacity: 0; transition: opacity 0.25s;
+      opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
     .banner.show { opacity: 1; }
-    .banner.react { background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.55); color: var(--yellow); }
-    .banner.brake { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.55); color: var(--red); }
-    .banner.done  { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.55); color: var(--green); }
+    .banner.warn  { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.55); color: var(--orange); }
+    .banner.react { background: rgba(234,179,8,0.15);  border: 1px solid rgba(234,179,8,0.55);  color: var(--yellow); }
+    .banner.brake { background: rgba(239,68,68,0.15);  border: 1px solid rgba(239,68,68,0.55);  color: var(--red); }
+    .banner.done  { background: rgba(34,197,94,0.15);  border: 1px solid rgba(34,197,94,0.55);  color: var(--green); }
 
     /* ─── OVERLAY / RESULT ─── */
     .overlay {
-      position: absolute; inset: 0;
-      background: rgba(11,17,32,0.97);
+      position: absolute; inset: 0; background: rgba(11,17,32,0.97);
       display: none; align-items: center; justify-content: center;
       z-index: 30; backdrop-filter: blur(6px); padding: 20px;
     }
@@ -190,78 +179,55 @@
     .card {
       background: var(--surface); border: 2px solid var(--border);
       border-radius: 20px; padding: 20px; width: 100%;
-      max-width: 340px; max-height: 90vh; overflow-y: auto; text-align: center;
+      max-width: 340px; max-height: 90vh; overflow-y: auto; text-align: left;
     }
-    .res-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 24px; font-weight: 900; margin-bottom: 14px;
-    }
+    .res-title { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; text-align: center; margin-bottom: 4px; }
+    .res-sub { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 16px; font-weight: 600; line-height: 1.3;}
 
-    /* Mini ruler in result card */
-    .mini-ruler { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 14px; }
-    .mini-hdr {
-      background: rgba(255,255,255,0.04);
-      padding: 6px 12px; font-size: 12px; font-weight: 600;
-      display: flex; justify-content: space-between;
-    }
-    .mini-bar { display: flex; height: 46px; }
-    .mini-react {
-      background: rgba(234,179,8,0.16); border-top: 2px solid var(--yellow);
-      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px;
-    }
-    .mini-brake {
-      background: rgba(239,68,68,0.16); border-top: 2px solid var(--red);
-      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px;
-    }
-    .ml { font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-    .mv { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 700; }
-    .mini-react .mv { color: var(--yellow); }
-    .mini-brake .mv { color: var(--red); }
+    .res-box { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .res-box-title { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.5px;}
+    .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; }
+    .res-val { font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; }
 
-    .math-box {
-      background: rgba(255,255,255,0.05); border-radius: 10px;
-      padding: 14px; margin-bottom: 14px;
-    }
-    .math-f {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 8px;
-    }
-    .math-bd { font-size: 13px; text-align: left; line-height: 1.8; }
-    .cy { color: var(--yellow); font-weight: 600; }
-    .cr { color: var(--red);    font-weight: 600; }
-
-    .defs { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 14px; text-align: left; }
+    .defs { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 14px; }
     .defs p { margin-bottom: 8px; }
     .defs strong { color: var(--blue); }
 
-    .advice {
-      background: rgba(34,197,94,0.1); border-left: 3px solid var(--green);
-      padding: 10px; font-size: 13px; margin-bottom: 16px; border-radius: 4px; text-align: left;
-    }
     .btn-ok {
       width: 100%; background: var(--blue); color: #fff;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 18px; font-weight: 700; border: none; border-radius: 12px;
-      padding: 14px; cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700;
+      border: none; border-radius: 12px; padding: 14px; cursor: pointer; transition: 0.15s; margin-top: 8px;
     }
-    .btn-ok:active { filter: brightness(1.15); }
+    .btn-ok:active { filter: brightness(1.15); transform: scale(0.98); }
 
-    /* ─── CONTROLS ─── */
-    .controls { padding: 12px; flex-shrink: 0; background: var(--bg); }
-    .speed-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .speed-lbl { font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-    .speed-slider { flex: 1; accent-color: var(--blue); }
+    /* ─── CONTROLS (SVG SPEED SIGNS) ─── */
+    .controls { padding: 12px 0; flex-shrink: 0; background: var(--bg); }
+    .controls-inner { padding: 0 12px; display: flex; gap: 10px; }
+    
+    .speed-signs-wrap {
+      display: flex; gap: 12px; overflow-x: auto; padding: 4px 16px 16px 16px;
+      scroll-snap-type: x mandatory; scrollbar-width: none;
+    }
+    .speed-signs-wrap::-webkit-scrollbar { display: none; }
+    
+    .speed-sign {
+      width: 48px; height: 48px; flex-shrink: 0; cursor: pointer; scroll-snap-align: center;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+      border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .speed-sign.active { transform: scale(1.2); box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--blue), 0 6px 16px rgba(218,37,29,0.5); z-index: 2; }
+
     .go-btn {
-      width: 100%; padding: 20px; border-radius: 14px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 24px; font-weight: 900; border: none; cursor: pointer;
-      text-transform: uppercase; letter-spacing: 1px;
-      transition: filter 0.1s, transform 0.1s;
-      -webkit-touch-callout: none;
+      flex: 1; padding: 20px; border-radius: 14px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900;
+      border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+      transition: filter 0.1s, transform 0.1s, background 0.2s; -webkit-touch-callout: none;
     }
     .go-btn:active { transform: translateY(2px); filter: brightness(1.1); }
-    .go-idle { background: var(--blue); color: #fff; }
-    .go-run  { background: rgba(59,130,246,0.1); color: var(--muted); border: 2px solid rgba(59,130,246,0.25); pointer-events: none; }
+    .btn-go { background: var(--blue); color: #fff; }
+    .btn-brake { background: rgba(239,68,68,0.1); color: var(--red); border: 2px solid rgba(239,68,68,0.5); display: none; }
+    .btn-brake.active { display: block; }
+    .btn-go.hidden { display: none; }
   </style>
 </head>
 <body>
@@ -274,23 +240,15 @@
 
   <!-- HUD -->
   <div class="hud">
-    <div class="hud-row">
-      <div class="hud-card">
-        <div class="hud-label">Швидкість</div>
-        <div class="hud-value" style="color:var(--blue)">
-          <span id="uiSpeed">50</span><span class="hud-unit">км/год</span>
-        </div>
-      </div>
-      <div class="hud-card">
-        <div class="hud-label">Зупинковий шлях</div>
-        <div class="hud-value" style="color:#fff">
-          <span id="uiTotal">25</span><span class="hud-unit">м</span>
-        </div>
-      </div>
+    <div class="hud-main">
+      <div class="hud-main-label">Зупинковий шлях</div>
+      <div class="hud-main-val"><span id="uiTotal">25</span> <span style="font-size: 20px;">м</span></div>
+      <div class="hud-main-sub">при <span id="uiSpeed">50</span> км/год</div>
     </div>
+    
     <div class="hud-row">
       <div class="hud-card" id="cardReact">
-        <div class="hud-label" style="color:var(--yellow)">Час реакції (~1 с)</div>
+        <div class="hud-label" id="lblReact" style="color:var(--yellow)">Реакція (~1 с = ~14 м)</div>
         <div class="hud-value" style="color:var(--yellow)">
           <span id="uiReact">14</span><span class="hud-unit">м</span>
         </div>
@@ -306,24 +264,20 @@
 
   <!-- SIM -->
   <div class="sim-area">
-
     <!-- ══ RULER ══ -->
     <div class="ruler" id="ruler">
-      <div class="ruler-top-lbl">Шлях</div>
-
+      <div class="ruler-top-lbl">Разом<br><span class="ruler-total-txt" id="rulerTotal">25 м</span></div>
       <div class="ruler-zones" id="rulerZones">
-        <!-- react = top (appears above brake) -->
+        <!-- Flex column-reverse: React is physically lower in DOM visually -->
         <div class="rz-react" id="rzReact">
           <div class="rz-m" id="rzReactM">0 м</div>
           <div class="rz-lbl" id="rzReactL">Реакція</div>
         </div>
-        <!-- brake = bottom -->
         <div class="rz-brake" id="rzBrake">
           <div class="rz-m" id="rzBrakeM">0 м</div>
           <div class="rz-lbl" id="rzBrakeL">Гальмо</div>
         </div>
       </div>
-
       <div class="ruler-dot" id="rulerDot"></div>
     </div>
 
@@ -334,59 +288,44 @@
 
       <div class="overlay" id="overlay">
         <div class="card">
-          <div class="res-title">📐 Розбір ситуації</div>
+          <div class="res-title" id="resTitle">Розбір</div>
+          <div class="res-sub" id="resSub"></div>
 
-          <!-- Mini ruler -->
-          <div class="mini-ruler">
-            <div class="mini-hdr">
-              <span>Зупинковий шлях</span>
-              <span id="rTotal" style="color:#fff;font-weight:700">25 м</span>
-            </div>
-            <div class="mini-bar">
-              <div class="mini-react" id="mReact" style="flex:14">
-                <span class="ml">Реакція (~1 с)</span>
-                <span class="mv" id="rReactV">14 м</span>
-              </div>
-              <div class="mini-brake" id="mBrake" style="flex:11">
-                <span class="ml">Гальмо</span>
-                <span class="mv" id="rBrakeV">11 м</span>
-              </div>
-            </div>
+          <div class="res-box">
+            <div class="res-box-title">Ваш фактичний результат</div>
+            <div class="res-row"><span>Час реакції:</span> <span class="res-val" id="rUserTime" style="color:var(--yellow)">0.0 с</span></div>
+            <div class="res-row"><span>Шлях до зупинки:</span> <span class="res-val" id="rUserDist" style="color:#fff">0 м</span></div>
+            <div class="res-row"><span>Дистанція до об'єкта:</span> <span class="res-val" id="rUserMargin" style="color:var(--green)">+0 м</span></div>
           </div>
 
-          <div class="math-box">
-            <div class="math-f" id="rFormula">5 × 5 = 25 м</div>
-            <div class="math-bd">
-              <span class="cy">■ Час реакції водія:</span> <span id="rReactM">14</span> м — шлях за ~1 сек<br>
-              <span class="cr">■ Гальмовий шлях:</span> <span id="rBrakeM">11</span> м — до повної зупинки
+          <div class="res-box" style="border: 1px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.05);">
+            <div class="res-box-title" style="color: var(--blue);">Теоретичний розрахунок ПДР</div>
+            <div id="rFormula" style="font-family: 'Barlow Condensed'; font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 6px; text-align: center;">
+              50 км/год → 5 × 5 = 25 м
             </div>
-          </div>
-
-          <div class="defs">
-            <p><strong>Зупинковий шлях</strong> = час реакції водія + гальмовий шлях.</p>
-            <p><strong>Гальмовий шлях</strong> — відстань від моменту натискання на педаль гальма до повної зупинки ТЗ.</p>
-          </div>
-
-          <div class="advice">
-            <b>Поради водієві:</b><br>
-            1. Постійно оцінюйте дорожню обстановку.<br>
-            2. Знижуйте швидкість заздалегідь!
+            <div style="font-size: 13px; color: #cbd5e1; display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span>Ідеальна реакція (1 с):</span>
+              <span style="font-weight:bold; color:#fff"><span id="rIdealReact">14</span> м</span>
+            </div>
+            <div style="font-size: 13px; color: #cbd5e1; display:flex; justify-content:space-between;">
+              <span>Гальмовий шлях:</span>
+              <span style="font-weight:bold; color:#fff"><span id="rIdealBrake">11</span> м</span>
+            </div>
           </div>
 
           <button class="btn-ok" id="btnRestart">Зрозуміло, далі →</button>
         </div>
       </div>
     </div>
-
   </div><!-- /sim-area -->
 
   <!-- CONTROLS -->
   <div class="controls">
-    <div class="speed-row" id="speedRow">
-      <span class="speed-lbl">Швидкість:</span>
-      <input type="range" class="speed-slider" id="slider" min="30" max="130" step="10" value="50">
+    <div class="speed-signs-wrap" id="speedSignsWrap"></div>
+    <div class="controls-inner">
+      <button class="go-btn btn-go" id="btnGo">▶ ПОЇХАЛИ</button>
+      <button class="go-btn btn-brake" id="btnBrake">🛑 ГАЛЬМА</button>
     </div>
-    <button class="go-btn go-idle" id="btnGo">▶ ПОЇХАЛИ</button>
   </div>
 
 </div><!-- /app -->
@@ -407,10 +346,10 @@
 /* ── Elements ── */
 const simCvs  = document.getElementById('simCanvas');
 const ctx     = simCvs.getContext('2d');
-const slider  = document.getElementById('slider');
 const btnGo   = document.getElementById('btnGo');
+const btnBrake= document.getElementById('btnBrake');
 const btnRst  = document.getElementById('btnRestart');
-const speedRow= document.getElementById('speedRow');
+const speedWrap= document.getElementById('speedSignsWrap');
 const overlay = document.getElementById('overlay');
 const bannerEl= document.getElementById('banner');
 const cardReact=document.getElementById('cardReact');
@@ -427,16 +366,42 @@ const ruler   = document.getElementById('ruler');
 /* ── Helpers ── */
 const CAR_W=30, CAR_H=52, CAR_R=6, PX_M=5.5, TREES=9;
 const DOT_BOTTOM=56; // px from bottom of ruler — matches car Y in canvas
+const SAFE_STOP_M = 5; // авто зупиняється за 5м до пішохода (безпечний буфер)
 
 /* ── State ── */
 const S={
-  phase:'idle',   // idle | cruise | react | brake | done
+  phase:'idle',   // idle | cruise | anticipate | react | brake | done
   kmh:50, total:0, react:0, brake:0,
   roadOff:0, trees:[],
-  obsY:0, obsActive:false,
-  rTraveled:0, bTraveled:0,
-  cruiseSec:0,
+  
+  pedDist:0, pedX:0, targetPedX:0, obsActive:false, dangerStartDist:0,
+  
+  rTraveled:0, bTraveled:0, cruiseSec:0, userReactSec:0,
+  crashed:false, earlyBrake:false
 };
+
+/* ── Signs ── */
+function buildSigns() {
+  let html = '';
+  for (let s = 30; s <= 130; s += 10) {
+    html += `<svg viewBox="0 0 100 100" class="speed-sign ${s === S.kmh ? 'active' : ''}" data-speed="${s}" onclick="setSpeed(${s})">
+      <circle cx="50" cy="50" r="45" fill="#fff" stroke="#da251d" stroke-width="10"/>
+      <text x="50" y="68" font-family="'Barlow Condensed', sans-serif" font-size="46" font-weight="900" text-anchor="middle" fill="#000">${s}</text>
+    </svg>`;
+  }
+  speedWrap.innerHTML = html;
+}
+buildSigns();
+
+window.setSpeed = function(v) {
+  if (S.phase !== 'idle') return;
+  S.kmh = v;
+  applyCalc(v);
+  document.querySelectorAll('.speed-sign').forEach(el => el.classList.toggle('active', parseInt(el.dataset.speed) === v));
+  const sign = document.querySelector(`.speed-sign[data-speed="${v}"]`);
+  if(sign) sign.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+  rulerIdlePreview();
+}
 
 /* ── Calc ── */
 function computeDist(v){
@@ -452,11 +417,9 @@ function applyCalc(v){
   document.getElementById('uiTotal').textContent=c.total;
   document.getElementById('uiReact').textContent=c.react;
   document.getElementById('uiBrake').textContent=c.brake;
+  document.getElementById('lblReact').textContent=`Реакція (~1 с = ~${c.react} м)`;
+  document.getElementById('rulerTotal').textContent=c.total+' м';
 }
-
-slider.addEventListener('input',e=>{
-  if(S.phase==='idle'){ S.kmh=+e.target.value; applyCalc(S.kmh); rulerIdlePreview(); }
-});
 
 /* ── Trees ── */
 function spawnTrees(){
@@ -482,7 +445,7 @@ function rulerH(){ return ruler.getBoundingClientRect().height; }
 
 function rulerIdlePreview(){
   const rH=rulerH();
-  const avail=rH-DOT_BOTTOM-20;                        // px above car dot
+  const avail=rH-DOT_BOTTOM-35; // Reserve space for top label
   const scale=Math.min(1, avail/(S.total*PX_M));
   const rpx=S.react*PX_M*scale;
   const bpx=S.brake*PX_M*scale;
@@ -499,9 +462,9 @@ function rulerIdlePreview(){
 
 /* ── Ruler: live update ── */
 function rulerLive(){
-  if(S.phase==='idle') return;
+  if(S.phase==='idle' || S.phase==='cruise' || S.phase==='anticipate') return;
   const rH=rulerH();
-  const avail=rH-DOT_BOTTOM-20;
+  const avail=rH-DOT_BOTTOM-35;
   const scale=Math.min(1, avail/(S.total*PX_M));
 
   const rpx=S.rTraveled*PX_M*scale;
@@ -539,75 +502,171 @@ function hlBrake(on){ cardBrake.classList.toggle('hl-brake',on); }
 function startSim(){
   if(S.phase!=='idle') return;
   S.phase='cruise'; S.obsActive=false;
-  S.rTraveled=0; S.bTraveled=0; S.cruiseSec=0;
+  S.rTraveled=0; S.bTraveled=0; S.cruiseSec=0; S.userReactSec=0;
+  S.crashed=false; S.earlyBrake=false;
+  
   rulerReset();
   hlReact(false); hlBrake(false); hideBanner();
-  btnGo.className='go-btn go-run';
-  btnGo.textContent='⏳ Дивіться…';
-  speedRow.style.opacity='0.4';
-  slider.disabled=true;
+  
+  btnGo.classList.add('hidden');
+  btnBrake.classList.add('active');
+  speedWrap.style.opacity='0.4';
+  speedWrap.style.pointerEvents='none';
 }
-btnGo.addEventListener('click', startSim);
+btnGo.addEventListener('mousedown', startSim);
 btnGo.addEventListener('touchstart',e=>{e.preventDefault();startSim();});
+
+function triggerBrake() {
+  if (S.phase === 'anticipate') {
+    S.phase = 'brake'; S.earlyBrake = true;
+    S.dangerStartDist = S.pedDist; S.rTraveled = 0; S.userReactSec = 0;
+    const dpr = devicePixelRatio || 1, W = simCvs.width / dpr, roadW = Math.min(150, W * 0.55);
+    S.targetPedX = W/2 + roadW/2 + 5; // Ped stays safe on edge
+    
+    btnBrake.classList.remove('active'); hlBrake(true);
+    showBanner('done', '👍 ЗАВЧАСНЕ ГАЛЬМУВАННЯ');
+  } else if (S.phase === 'react') {
+    S.phase = 'brake';
+    btnBrake.classList.remove('active');
+    hlReact(false); hlBrake(true);
+    showBanner('brake', '🛑 ГАЛЬМУЄ! ГАЛЬМОВИЙ ШЛЯХ…');
+  }
+}
+btnBrake.addEventListener('mousedown', triggerBrake);
+btnBrake.addEventListener('touchstart',e=>{e.preventDefault();triggerBrake();});
 
 btnRst.addEventListener('click',()=>{
   overlay.classList.remove('active');
   S.phase='idle'; S.obsActive=false;
   hlReact(false); hlBrake(false); hideBanner();
-  btnGo.className='go-btn go-idle';
-  btnGo.textContent='▶ ПОЇХАЛИ';
-  speedRow.style.opacity='1';
-  slider.disabled=false;
+  
+  btnGo.classList.remove('hidden');
+  btnBrake.classList.remove('active');
+  speedWrap.style.opacity='1';
+  speedWrap.style.pointerEvents='auto';
+  
   rulerIdlePreview();
   rulerDot.style.bottom=DOT_BOTTOM+'px';
 });
 
 /* ── Result ── */
 function showResult(){
-  const t=Math.floor(S.kmh/10);
-  document.getElementById('rFormula').textContent=`${t} × ${t} = ${S.total} м`;
-  document.getElementById('rReactM').textContent=S.react;
-  document.getElementById('rBrakeM').textContent=S.brake;
-  document.getElementById('rTotal').textContent=S.total+' м';
-  document.getElementById('rReactV').textContent=S.react+' м';
-  document.getElementById('rBrakeV').textContent=S.brake+' м';
-  document.getElementById('mReact').style.flex=S.react;
-  document.getElementById('mBrake').style.flex=Math.max(1,S.brake);
+  const rt = S.earlyBrake ? 0 : S.userReactSec;
+  const totDist = S.rTraveled + S.bTraveled;
+  // Реальний запас = відстань до пішохода мінус безпечний буфер
+  const margin = S.dangerStartDist - totDist - SAFE_STOP_M;
+
+  const resTitle = document.getElementById('resTitle');
+  const resSub = document.getElementById('resSub');
+
+  if (S.crashed) {
+    resTitle.innerHTML = '❌ ЗІТКНЕННЯ!'; resTitle.style.color = 'var(--red)';
+    resSub.textContent = 'Ви не встигли зупинитися до перешкоди.';
+  } else if (S.earlyBrake) {
+    resTitle.innerHTML = '🏆 ВІДМІННО!'; resTitle.style.color = 'var(--green)';
+    resSub.textContent = 'Ви передбачили небезпеку і загальмували заздалегідь.';
+  } else {
+    resTitle.innerHTML = '✅ БЕЗПЕЧНА ЗУПИНКА'; resTitle.style.color = 'var(--green)';
+    resSub.textContent = 'Ви встигли зреагувати та безпечно зупинитися.';
+  }
+
+  document.getElementById('rUserTime').textContent = rt.toFixed(2) + ' с';
+  document.getElementById('rUserDist').textContent = Math.round(totDist) + ' м';
+  const marginEl = document.getElementById('rUserMargin');
+  marginEl.textContent = S.crashed ? '0 м' : `+${Math.floor(margin)} м`;
+  marginEl.style.color = S.crashed ? 'var(--red)' : 'var(--green)';
+
+  const t = Math.floor(S.kmh / 10);
+  document.getElementById('rFormula').textContent = `${S.kmh} км/год → ${t} × ${t} = ${S.total} м`;
+  document.getElementById('rIdealReact').textContent = S.react;
+  document.getElementById('rIdealBrake').textContent = S.brake;
+
   overlay.classList.add('active');
 }
 
 /* ── Draw helpers ── */
 function rr(x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
 }
 function drawCar(cx,cy,color,braking){
   ctx.save(); ctx.translate(cx,cy);
   ctx.fillStyle='rgba(0,0,0,0.38)'; rr(-CAR_W/2+2,-CAR_H/2+2,CAR_W,CAR_H,CAR_R); ctx.fill();
   ctx.fillStyle=color; rr(-CAR_W/2,-CAR_H/2,CAR_W,CAR_H,CAR_R); ctx.fill();
-  ctx.fillStyle='rgba(15,23,42,0.85)';
-  rr(-11,-20,22,16,3); ctx.fill();
-  rr(-11,6,22,12,3); ctx.fill();
-  ctx.fillStyle='#fef9c3';
-  ctx.fillRect(-13,-CAR_H/2,6,3); ctx.fillRect(7,-CAR_H/2,6,3);
+  ctx.fillStyle='rgba(15,23,42,0.85)'; rr(-11,-20,22,16,3); ctx.fill(); rr(-11,6,22,12,3); ctx.fill();
+  ctx.fillStyle='#fef9c3'; ctx.fillRect(-13,-CAR_H/2,6,3); ctx.fillRect(7,-CAR_H/2,6,3);
   if(braking){
     ctx.shadowColor='#ef4444'; ctx.shadowBlur=14; ctx.fillStyle='#ff2222';
+    ctx.fillRect(-13,CAR_H/2-4,7,4); ctx.fillRect(6,CAR_H/2-4,7,4); ctx.shadowBlur=0;
   } else {
-    ctx.fillStyle='#7f1d1d';
+    ctx.fillStyle='#7f1d1d'; ctx.fillRect(-13,CAR_H/2-4,7,3); ctx.fillRect(6,CAR_H/2-4,7,3);
   }
-  ctx.fillRect(-13,CAR_H/2-4,7,4); ctx.fillRect(6,CAR_H/2-4,7,4);
-  ctx.shadowBlur=0; ctx.restore();
+  ctx.restore();
+}
+
+function drawPedestrian(x, y, isWalking, phase) {
+  ctx.save();
+  const t = Date.now();
+  const legSwing = isWalking ? Math.sin(t / 150) * 6 : 0;
+  const armSwing = isWalking ? Math.sin(t / 150 + Math.PI) * 4 : 0;
+
+  // Тінь
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(x, y + 10, 8, 3, 0, 0, Math.PI*2); ctx.fill();
+
+  ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+  // Тіло
+  ctx.beginPath(); ctx.moveTo(x, y - 2); ctx.lineTo(x, y + 4); ctx.stroke();
+
+  // Ноги
+  ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x - 4 + legSwing, y + 11); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x + 4 - legSwing, y + 11); ctx.stroke();
+
+  // Руки
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5 - armSwing, y + 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 5 + armSwing, y + 4); ctx.stroke();
+
+  // Голова
+  ctx.fillStyle = '#ffedd5';
+  ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(x, y - 6, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+  ctx.restore();
+
+  // Безпечна зона перед пішоходом (видима дистанція буфера)
+  if (phase === 'brake' || phase === 'done') {
+    const bufPx = SAFE_STOP_M * PX_M;
+    ctx.save();
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.rect(x - 18, y + 14, 36, bufPx);
+    ctx.fill(); ctx.stroke();
+    ctx.setLineDash([]);
+    // Підпис
+    ctx.font = 'bold 9px Barlow Condensed, sans-serif';
+    ctx.fillStyle = 'rgba(34,197,94,0.85)';
+    ctx.textAlign = 'center';
+    ctx.fillText(SAFE_STOP_M+' м', x, y + 14 + bufPx/2 + 4);
+    ctx.restore();
+  }
+}
+
+function drawCrashEffect(x, y) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = '#ef4444'; ctx.beginPath();
+  for(let i=0; i<12; i++) { const r=i%2===0?35:15, a=(Math.PI*2/12)*i; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); } ctx.fill();
+  ctx.fillStyle = '#eab308'; ctx.beginPath();
+  for(let i=0; i<10; i++) { const r=i%2===0?18:8, a=(Math.PI*2/10)*i; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); } ctx.fill();
+  ctx.restore();
 }
 
 /* ── Main draw ── */
 function draw(){
-  const dpr=devicePixelRatio||1;
-  const W=simCvs.width/dpr, H=simCvs.height/dpr;
+  const dpr=devicePixelRatio||1, W=simCvs.width/dpr, H=simCvs.height/dpr;
   const cx=W/2, roadW=Math.min(150,W*0.55), carY=H-90;
 
   ctx.fillStyle='#052e16'; ctx.fillRect(0,0,W,H);
@@ -628,34 +687,38 @@ function draw(){
   });
 
   if(S.obsActive){
-    const rpx=S.rTraveled*PX_M, bpx=S.bTraveled*PX_M;
-    // reaction zone (yellow) from carY upward
-    if(rpx>0){
-      ctx.fillStyle='rgba(234,179,8,0.17)';
-      ctx.fillRect(cx-roadW/2+2, carY-rpx, roadW-4, rpx);
-      // horizontal white line = moment signal appeared
-      ctx.fillStyle='rgba(255,255,255,0.22)';
-      ctx.fillRect(cx-roadW/2, carY, roadW, 2);
-    }
-    // brake zone (red) above reaction
-    if(bpx>0){
-      ctx.fillStyle='rgba(239,68,68,0.22)';
-      ctx.fillRect(cx-roadW/2+2, carY-rpx-bpx, roadW-4, bpx);
-      // line between zones (yellow)
-      ctx.fillStyle='rgba(234,179,8,0.75)';
-      ctx.fillRect(cx-roadW/2, carY-rpx, roadW, 2.5);
-    }
-    // Annotations
-    ctx.font='bold 10px Barlow Condensed,sans-serif';
-    ctx.textAlign='right';
-    if(rpx>26){ ctx.fillStyle='rgba(234,179,8,0.85)'; ctx.fillText(Math.round(S.rTraveled)+' м', cx+roadW/2-4, carY-rpx/2+4); }
-    if(bpx>26){ ctx.fillStyle='rgba(239,68,68,0.85)';  ctx.fillText(Math.round(S.bTraveled)+' м', cx+roadW/2-4, carY-rpx-bpx/2+4); }
+    if (S.phase !== 'anticipate') {
+      // DANGER LINE
+      const dangerY = carY + (S.rTraveled + S.bTraveled) * PX_M;
+      
+      ctx.fillStyle = '#facc15'; ctx.fillRect(cx - roadW/2, dangerY, roadW, 3);
+      ctx.font = 'bold 12px "Barlow Condensed", sans-serif'; 
+      ctx.textAlign = 'center'; ctx.fillStyle = '#facc15'; 
+      ctx.fillText('⚡ МОМЕНТ НЕБЕЗПЕКИ', cx, dangerY - 6);
 
-    // Obstacle
-    drawCar(cx, carY+S.obsY, '#94a3b8', true);
+      const rpx = S.rTraveled * PX_M;
+      const bpx = S.bTraveled * PX_M;
+
+      if (rpx > 0) {
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.25)'; ctx.fillRect(cx - roadW/2 + 2, dangerY - rpx, roadW - 4, rpx);
+        if (S.phase === 'brake' || S.phase === 'done') { 
+          ctx.fillStyle = 'rgba(234, 179, 8, 0.8)'; ctx.fillRect(cx - roadW/2, dangerY - rpx, roadW, 3); 
+        }
+      }
+      if (bpx > 0) {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.35)'; ctx.fillRect(cx - roadW/2 + 2, dangerY - rpx - bpx, roadW - 4, bpx);
+        if (S.phase === 'done') { 
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.8)'; ctx.fillRect(cx - roadW/2, dangerY - rpx - bpx, roadW, 4); 
+        }
+      }
+    }
+
+    const pedY = carY - S.pedDist * PX_M;
+    drawPedestrian(S.pedX, pedY, (S.phase !== 'done' && !S.crashed), S.phase);
+    if (S.crashed) drawCrashEffect(S.pedX, pedY);
   }
 
-  const braking=S.phase==='brake'||S.phase==='done';
+  const braking = S.phase === 'brake' || S.phase === 'done' || S.earlyBrake;
   drawCar(cx, carY, '#3b82f6', braking);
 }
 
@@ -666,7 +729,16 @@ function loop(ts){
   let dt=(ts-lastT)/1000; if(dt>.1)dt=.1; lastT=ts;
   const mps=S.kmh*1000/3600;
 
+  let curMps = mps;
+  if (S.phase === 'brake') {
+    const decel = (mps*mps)/(2*S.brake);
+    curMps = Math.sqrt(Math.max(0, mps*mps - 2*decel*S.bTraveled));
+  } else if (S.phase === 'done' || S.phase === 'idle') {
+    curMps = 0;
+  }
+
   function moveWorld(spd){
+    if (spd <= 0) return 0;
     const px=spd*PX_M*dt;
     S.roadOff=(S.roadOff+px)%40;
     const dpr=devicePixelRatio||1, H=simCvs.height/dpr;
@@ -674,51 +746,83 @@ function loop(ts){
     return px;
   }
 
-  if(S.phase==='cruise'){
-    moveWorld(mps);
-    S.cruiseSec+=dt;
-    if(!S.obsActive && S.cruiseSec>1.0 && Math.random()<dt*0.55){
-      S.obsActive=true;
-      S.rTraveled=0; S.bTraveled=0;
-      // Place obstacle far enough that car stops just before it
-      S.obsY=-(S.total+8)*PX_M;
-      S.phase='react';
+  if (S.phase !== 'idle' && S.phase !== 'done') {
+    const px = moveWorld(curMps);
+    
+    if (S.obsActive) {
+      S.pedDist -= curMps * dt;
+      if (S.phase !== 'anticipate') {
+        if (S.phase === 'react') {
+           S.rTraveled += curMps * dt;
+           S.userReactSec += dt;
+        } else if (S.phase === 'brake') {
+           S.bTraveled += curMps * dt;
+        }
+      }
+      
+      // Зіткнення — якщо доїхали впритул (менше 1м запасу)
+      if (S.pedDist <= 0.5) {
+        S.pedDist = 0.5; S.phase = 'done'; S.crashed = true;
+        hlBrake(false); hlReact(false); hideBanner();
+        setTimeout(showResult, 800);
+      }
+    }
+  }
+
+  // State Logic
+  if (S.phase === 'cruise') {
+    S.cruiseSec += dt;
+    if (!S.obsActive && S.cruiseSec > 1.5 && Math.random() < dt * 0.5) {
+      S.obsActive = true;
+      S.rTraveled = 0; S.bTraveled = 0; S.userReactSec = 0;
+      const triggerDist = S.total + 3;
+      S.pedDist = triggerDist + (mps * 1.5);
+      const dpr=devicePixelRatio||1, W=simCvs.width/dpr, cx=W/2, roadW=Math.min(150,W*0.55);
+      // Пішохід стартує з узбіччя правого боку
+      S.pedX = cx + roadW/2 + 25;
+      // Зупиняється на правій чверті дороги (не посередині!)
+      S.targetPedX = cx + roadW * 0.18;
+      S.phase = 'anticipate';
+      showBanner('warn', '👀 ОЦІНЮЙТЕ ОБСТАНОВКУ');
+    }
+  }
+  else if (S.phase === 'anticipate') {
+    if (S.pedDist <= S.total + 3) {
+      S.phase = 'react';
+      S.dangerStartDist = S.pedDist;
+      S.rTraveled = 0; S.bTraveled = 0; S.userReactSec = 0;
+      // Пішохід заходить на дорогу — але лише до центру смуги, не далі
+      const dpr=devicePixelRatio||1, W=simCvs.width/dpr, cx=W/2, roadW=Math.min(150,W*0.55);
+      S.targetPedX = cx - roadW * 0.05; // трохи лівіше центру правої смуги
       hlReact(true);
-      showBanner('react','⚠️ Водій бачить небезпеку — час реакції…');
+      showBanner('react','⚠️ РЕАКЦІЯ!');
     }
   }
-
-  else if(S.phase==='react'){
-    const px=moveWorld(mps);
-    S.obsY+=px;
-    S.rTraveled+=mps*dt;
-    if(S.rTraveled>=S.react){
-      S.rTraveled=S.react;
-      S.phase='brake';
+  else if (S.phase === 'react') {
+    if (S.userReactSec >= 1.2 || S.rTraveled >= S.react) {
+      S.phase = 'brake';
+      btnBrake.classList.remove('active');
       hlReact(false); hlBrake(true);
-      showBanner('brake','🛑 Гальмує! Гальмовий шлях…');
+      showBanner('brake','🛑 ГАЛЬМУЄ! ГАЛЬМОВИЙ ШЛЯХ…');
+    }
+  }
+  else if (S.phase === 'brake') {
+    // Зупинка: або швидкість = 0, або залишилось <= SAFE_STOP_M до пішохода
+    const nearPed = S.obsActive && S.pedDist <= SAFE_STOP_M;
+    if ((curMps <= 0.05 || nearPed) && !S.crashed) {
+      S.phase = 'done';
+      if (nearPed) S.pedDist = SAFE_STOP_M; // зафіксувати буфер
+      btnBrake.classList.remove('active');
+      hlBrake(false);
+      showBanner('done','✅ ЗУПИНКА!');
+      setTimeout(showResult, 1000);
     }
   }
 
-  else if(S.phase==='brake'){
-    const bDist=S.brake;
-    const decel=(mps*mps)/(2*bDist);
-    const curMps=Math.sqrt(Math.max(0, mps*mps - 2*decel*S.bTraveled));
-    if(curMps>0.05 && S.bTraveled<bDist){
-      const step=curMps*dt;
-      S.bTraveled=Math.min(bDist, S.bTraveled+step);
-      const px=curMps*PX_M*dt;
-      S.roadOff=(S.roadOff+px)%40;
-      const dpr=devicePixelRatio||1, H=simCvs.height/dpr;
-      S.trees.forEach(t=>{ t.y+=px; if(t.y>H+40) t.y=-40; });
-      S.obsY+=px;
-    } else {
-      S.bTraveled=bDist;
-      S.phase='done';
-      hlBrake(false);
-      showBanner('done','✅ Зупинка!');
-      setTimeout(showResult,1200);
-    }
+  // Pedestrian animation
+  if (S.pedX > S.targetPedX) {
+     S.pedX -= 120 * dt;
+     if (S.pedX < S.targetPedX) S.pedX = S.targetPedX;
   }
 
   rulerLive();
