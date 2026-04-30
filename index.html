@@ -87,6 +87,32 @@
     .hl-react  { border-color: var(--yellow) !important; background: rgba(234,179,8,0.1) !important; }
     .hl-brake  { border-color: var(--red) !important;    background: rgba(239,68,68,0.1) !important; }
 
+    /* ─── ADAPTIVE HUD ─── */
+    /* idle: повний HUD */
+    .hud { transition: all 0.4s ease; }
+    
+    /* cruise / anticipate: HUD стискається, менш помітний */
+    .hud.hud-cruise .hud-main { padding: 6px 12px; }
+    .hud.hud-cruise .hud-main-val { font-size: 28px; }
+    .hud.hud-cruise .hud-main-label { font-size: 11px; }
+    .hud.hud-cruise .hud-main-sub { display: none; }
+    .hud.hud-cruise .hud-row { opacity: 0.35; pointer-events: none; }
+
+    /* react: HUD майже зникає — фокус на дорогу */
+    .hud.hud-react .hud-main { padding: 4px 12px; border-color: var(--yellow); background: rgba(234,179,8,0.07); }
+    .hud.hud-react .hud-main-val { font-size: 22px; }
+    .hud.hud-react .hud-main-label { font-size: 10px; color: var(--yellow); }
+    .hud.hud-react .hud-main-sub { display: none; }
+    .hud.hud-react .hud-row { opacity: 0.2; pointer-events: none; }
+
+    /* brake: тільки гальмовий виділений */
+    .hud.hud-brake .hud-main { padding: 4px 12px; border-color: var(--red); background: rgba(239,68,68,0.07); }
+    .hud.hud-brake .hud-main-val { font-size: 22px; }
+    .hud.hud-brake .hud-main-label { font-size: 10px; color: var(--red); }
+    .hud.hud-brake .hud-main-sub { display: none; }
+    .hud.hud-brake #cardReact { opacity: 0.2; }
+    .hud.hud-brake #cardBrake { opacity: 1; }
+
     /* ─── SIM AREA ─── */
     .sim-area {
       flex: 1; display: flex; min-height: 0;
@@ -366,7 +392,7 @@ const ruler   = document.getElementById('ruler');
 /* ── Helpers ── */
 const CAR_W=30, CAR_H=52, CAR_R=6, PX_M=5.5, TREES=9;
 const DOT_BOTTOM=56; // px from bottom of ruler — matches car Y in canvas
-const SAFE_STOP_M = 5; // авто зупиняється за 5м до пішохода (безпечний буфер)
+const SAFE_STOP_M = 12; // авто зупиняється за 12м до пішохода (безпечний буфер)
 
 /* ── State ── */
 const S={
@@ -498,6 +524,13 @@ function hideBanner(){ bannerEl.className='banner'; }
 function hlReact(on){ cardReact.classList.toggle('hl-react',on); }
 function hlBrake(on){ cardBrake.classList.toggle('hl-brake',on); }
 
+/* ── Adaptive HUD ── */
+const hud = document.querySelector('.hud');
+function setHudMode(mode) {
+  // mode: '' | 'cruise' | 'react' | 'brake'
+  hud.className = 'hud' + (mode ? ' hud-' + mode : '');
+}
+
 /* ── Start / Restart ── */
 function startSim(){
   if(S.phase!=='idle') return;
@@ -507,6 +540,7 @@ function startSim(){
   
   rulerReset();
   hlReact(false); hlBrake(false); hideBanner();
+  setHudMode('cruise');
   
   btnGo.classList.add('hidden');
   btnBrake.classList.add('active');
@@ -524,6 +558,7 @@ function triggerBrake() {
     S.targetPedX = W/2 + roadW/2 + 5; // Ped stays safe on edge
     
     btnBrake.classList.remove('active'); hlBrake(true);
+    setHudMode('brake');
     showBanner('done', '👍 ЗАВЧАСНЕ ГАЛЬМУВАННЯ');
   } else if (S.phase === 'react') {
     S.phase = 'brake';
@@ -539,8 +574,7 @@ btnRst.addEventListener('click',()=>{
   overlay.classList.remove('active');
   S.phase='idle'; S.obsActive=false;
   hlReact(false); hlBrake(false); hideBanner();
-  
-  btnGo.classList.remove('hidden');
+  setHudMode('');
   btnBrake.classList.remove('active');
   speedWrap.style.opacity='1';
   speedWrap.style.pointerEvents='auto';
@@ -760,9 +794,9 @@ function loop(ts){
         }
       }
       
-      // Зіткнення — якщо доїхали впритул (менше 1м запасу)
-      if (S.pedDist <= 0.5) {
-        S.pedDist = 0.5; S.phase = 'done'; S.crashed = true;
+      // Зіткнення — якщо учень не загальмував до буферної зони
+      if (S.pedDist <= SAFE_STOP_M * 0.3) {
+        S.pedDist = SAFE_STOP_M * 0.3; S.phase = 'done'; S.crashed = true;
         hlBrake(false); hlReact(false); hideBanner();
         setTimeout(showResult, 800);
       }
@@ -783,6 +817,7 @@ function loop(ts){
       // Зупиняється на правій чверті дороги (не посередині!)
       S.targetPedX = cx + roadW * 0.18;
       S.phase = 'anticipate';
+      setHudMode('cruise');
       showBanner('warn', '👀 ОЦІНЮЙТЕ ОБСТАНОВКУ');
     }
   }
@@ -795,6 +830,7 @@ function loop(ts){
       const dpr=devicePixelRatio||1, W=simCvs.width/dpr, cx=W/2, roadW=Math.min(150,W*0.55);
       S.targetPedX = cx - roadW * 0.05; // трохи лівіше центру правої смуги
       hlReact(true);
+      setHudMode('react');
       showBanner('react','⚠️ РЕАКЦІЯ!');
     }
   }
@@ -803,6 +839,7 @@ function loop(ts){
       S.phase = 'brake';
       btnBrake.classList.remove('active');
       hlReact(false); hlBrake(true);
+      setHudMode('brake');
       showBanner('brake','🛑 ГАЛЬМУЄ! ГАЛЬМОВИЙ ШЛЯХ…');
     }
   }
@@ -814,6 +851,7 @@ function loop(ts){
       if (nearPed) S.pedDist = SAFE_STOP_M; // зафіксувати буфер
       btnBrake.classList.remove('active');
       hlBrake(false);
+      setHudMode('');
       showBanner('done','✅ ЗУПИНКА!');
       setTimeout(showResult, 1000);
     }
