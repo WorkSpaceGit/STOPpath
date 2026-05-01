@@ -624,40 +624,53 @@
           "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(s)));
       })();
 
-      const simCvs = document.getElementById("simCanvas");
-      const ctx = simCvs.getContext("2d");
-      const speedWrap = document.getElementById("speedSignsWrap");
-      const bannerEl = document.getElementById("banner");
-      const cardReact = document.getElementById("cardReact");
-      const cardBrake = document.getElementById("cardBrake");
-      const rzReact = document.getElementById("rzReact");
-      const rzBrake = document.getElementById("rzBrake");
-      const rzReactM = document.getElementById("rzReactM");
-      const rzBrakeM = document.getElementById("rzBrakeM");
-      const rzReactL = document.getElementById("rzReactL");
-      const rzBrakeL = document.getElementById("rzBrakeL");
-      const rulerDot = document.getElementById("rulerDot");
-      const ruler = document.getElementById("ruler");
+      // ── Кешовані DOM-елементи (запитуємо один раз) ──────────────────────────
+      const simCvs       = document.getElementById("simCanvas");
+      const ctx          = simCvs.getContext("2d");
+      const speedWrap    = document.getElementById("speedSignsWrap");
+      const bannerEl     = document.getElementById("banner");
+      const hud          = document.querySelector(".hud");
+      const hudMainLabel = document.querySelector(".hud-main-label");
+      const hudMainVal   = document.getElementById("uiTotal");
+      const hudMainSub   = document.getElementById("uiSpeed");
+      const cardReact    = document.getElementById("cardReact");
+      const cardBrake    = document.getElementById("cardBrake");
+      const elReact      = document.getElementById("uiReact");
+      const elBrake      = document.getElementById("uiBrake");
+      const elLblReact   = document.getElementById("lblReact");
+      const elRulerTotal = document.getElementById("rulerTotal");
+      const rzReact      = document.getElementById("rzReact");
+      const rzBrake      = document.getElementById("rzBrake");
+      const rzReactM     = document.getElementById("rzReactM");
+      const rzBrakeM     = document.getElementById("rzBrakeM");
+      const rzReactL     = document.getElementById("rzReactL");
+      const rzBrakeL     = document.getElementById("rzBrakeL");
+      const rulerZonesEl = document.getElementById("rulerZones");
+      const rulerDot     = document.getElementById("rulerDot");
+      const ruler        = document.getElementById("ruler");
       const rulerPhaseEl = document.getElementById("rulerPhase");
+      // Два окремі елементи для динамічного підпису фази — щоб не писати innerHTML щокадру
+      const rulerPhaseLbl = document.createElement("span");
+      const rulerPhaseM   = document.createElement("span");
+      rulerPhaseM.style.cssText = "font-size:12px";
+      rulerPhaseEl.innerHTML = "";
+      rulerPhaseEl.appendChild(rulerPhaseLbl);
+      rulerPhaseEl.appendChild(rulerPhaseM);
 
-      const CAR_W = 30,
-        CAR_H = 52,
-        CAR_R = 6,
-        TREES = 9;
+      // ── Константи ────────────────────────────────────────────────────────────
+      const CAR_W      = 30;
+      const CAR_H      = 52;
+      const CAR_R      = 6;
+      const TREES      = 9;
       const CAR_Y_FRAC = 0.93;
       const SCENE_FRAC = 0.85;
+      const RULER_PHASE_H = 50; // висота фазового індикатора знизу
+      const RULER_HDR_H   = 35; // висота заголовка зверху
+      // Поріг зупинки: швидкість нижче якої вважаємо машину зупиненою.
+      // Відповідає ~0.18 км/год — фізично неможливо продовжувати рух.
+      const STOP_SPEED_MPS = 0.05;
 
-      function getLayout() {
-        const dpr = devicePixelRatio || 1;
-        const W = simCvs.width / dpr,
-          H = simCvs.height / dpr;
-        const roadW = Math.min(150, W * 0.55),
-          cx = W / 2;
-        const carY = H * CAR_Y_FRAC;
-        const pxM = Math.max(4, (H * SCENE_FRAC) / Math.max(S.total, 1));
-        return { W, H, roadW, cx, carY, pxM };
-      }
-
+      // ── Стан симуляції ───────────────────────────────────────────────────────
       const S = {
         phase: "idle",
         kmh: 50,
@@ -669,13 +682,11 @@
 
         pedDist: 0,
         pedX: 0,
-        targetPedX: 0,
         obsActive: false,
         pedWalkTime: 0,
         pedWalkDir: 1,
 
         cameraLocked: false,
-        carActualY: 0,
         fixedDangerY: 0,
         fixedPedY: 0,
         crosswalkY: 0,
@@ -686,78 +697,87 @@
         userReactSec: 0,
       };
 
+      // ── Layout: викликається один раз на початку кожного кадру ──────────────
+      function getLayout() {
+        const dpr = devicePixelRatio || 1;
+        const W = simCvs.width / dpr;
+        const H = simCvs.height / dpr;
+        const roadW = Math.min(150, W * 0.55);
+        const cx = W / 2;
+        const carY = H * CAR_Y_FRAC;
+        const pxM = Math.max(4, (H * SCENE_FRAC) / Math.max(S.total, 1));
+        return { W, H, roadW, cx, carY, pxM };
+      }
+
+      // ── Знаки швидкості ──────────────────────────────────────────────────────
       function buildSigns() {
         let html = "";
         for (let s = 30; s <= 130; s += 10) {
-          html += `<svg viewBox="0 0 100 100" class="speed-sign ${s === S.kmh ? "active" : ""}" data-speed="${s}" onclick="setSpeed(${s})">
+          html += `<svg viewBox="0 0 100 100" class="speed-sign ${s === S.kmh ? "active" : ""}" data-speed="${s}">
       <circle cx="50" cy="50" r="45" fill="#fff" stroke="#da251d" stroke-width="10"/>
       <text x="50" y="68" font-family="'Barlow Condensed', sans-serif" font-size="46" font-weight="900" text-anchor="middle" fill="#000">${s}</text>
     </svg>`;
         }
         speedWrap.innerHTML = html;
+        // Слухачі через addEventListener замість onclick у HTML
+        speedWrap.querySelectorAll(".speed-sign").forEach((el) => {
+          el.addEventListener("click", () => setSpeed(parseInt(el.dataset.speed)));
+        });
       }
       buildSigns();
 
-      window.setSpeed = function (v) {
+      function setSpeed(v) {
         if (S.phase !== "idle" && S.phase !== "done") return;
         S.kmh = v;
         applyCalc(v);
-        document
-          .querySelectorAll(".speed-sign")
-          .forEach((el) =>
-            el.classList.toggle("active", parseInt(el.dataset.speed) === v),
-          );
-        const sign = document.querySelector(`.speed-sign[data-speed="${v}"]`);
-        if (sign)
-          sign.scrollIntoView({
-            behavior: "smooth",
-            inline: "center",
-            block: "nearest",
-          });
+        speedWrap.querySelectorAll(".speed-sign").forEach((el) =>
+          el.classList.toggle("active", parseInt(el.dataset.speed) === v),
+        );
+        const sign = speedWrap.querySelector(`.speed-sign[data-speed="${v}"]`);
+        if (sign) sign.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
         rulerIdlePreview();
         setTimeout(startSim, 300);
-      };
+      }
 
+      // ── Розрахунок відстаней ─────────────────────────────────────────────────
       function computeDist(v) {
         const t = Math.floor(v / 10);
         const total = t * t;
         const react = Math.round((v * 1000) / 3600);
         return { total, react, brake: Math.max(1, total - react) };
       }
+
       function applyCalc(v) {
         const c = computeDist(v);
         S.total = c.total;
         S.react = c.react;
         S.brake = c.brake;
-        document.getElementById("uiSpeed").textContent = `при ${v} км/год`;
-        document.getElementById("uiTotal").textContent = c.total;
-        document.getElementById("uiReact").textContent = c.react;
-        document.getElementById("uiBrake").textContent = c.brake;
-        document.getElementById("lblReact").textContent =
-          `Реакція (~1 с = ~${c.react} м)`;
-        document.getElementById("rulerTotal").textContent = c.total + " м";
-        document.querySelector(".hud-main-label").textContent =
-          "Зупинковий шлях";
+        hudMainSub.textContent   = `при ${v} км/год`;
+        hudMainVal.textContent   = c.total;
+        elReact.textContent      = c.react;
+        elBrake.textContent      = c.brake;
+        elLblReact.textContent   = `Реакція (~1 с = ~${c.react} м)`;
+        elRulerTotal.textContent = c.total + " м";
+        hudMainLabel.textContent = "Зупинковий шлях";
       }
 
-      // Динамічне оновлення головного HUD-блоку під час симуляції
+      // ── Оновлення HUD під час симуляції ─────────────────────────────────────
       function updateHudMain() {
-        const lbl = document.querySelector(".hud-main-label");
-        const val = document.getElementById("uiTotal");
-        const sub = document.getElementById("uiSpeed");
         if (S.phase === "react") {
-          lbl.textContent = "⏱ Час реакції";
-          val.textContent = Math.round(S.rTraveled);
-          sub.textContent = `пройдено ${Math.round(S.rTraveled)} з ${S.react} м`;
+          const m = Math.round(S.rTraveled);
+          hudMainLabel.textContent = "⏱ Час реакції";
+          hudMainVal.textContent   = m;
+          hudMainSub.textContent   = `пройдено ${m} з ${S.react} м`;
         } else if (S.phase === "brake") {
-          lbl.textContent = "🛑 Гальмовий шлях";
-          val.textContent = Math.round(S.bTraveled);
-          sub.textContent = `пройдено ${Math.round(S.bTraveled)} з ${S.brake} м`;
+          const m = Math.round(S.bTraveled);
+          hudMainLabel.textContent = "🛑 Гальмовий шлях";
+          hudMainVal.textContent   = m;
+          hudMainSub.textContent   = `пройдено ${m} з ${S.brake} м`;
         }
       }
 
-      function spawnTrees() {
-        const { H } = getLayout();
+      // ── Дерева ───────────────────────────────────────────────────────────────
+      function spawnTrees(H) {
         S.trees = [];
         for (let i = 0; i < TREES; i++)
           S.trees.push({
@@ -767,99 +787,82 @@
           });
       }
 
+      // ── Resize ───────────────────────────────────────────────────────────────
       function resize() {
         const dpr = devicePixelRatio || 1;
         const rc = simCvs.parentElement.getBoundingClientRect();
-        simCvs.width = rc.width * dpr;
+        simCvs.width  = rc.width  * dpr;
         simCvs.height = rc.height * dpr;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        spawnTrees();
+        const { H } = getLayout();
+        spawnTrees(H);
         updateRulerDot();
         rulerIdlePreview();
       }
       window.addEventListener("resize", resize);
 
-      const RULER_PHASE_H = 50; // висота фазового індикатора знизу
-      const RULER_HDR_H = 35; // висота заголовка "Разом" зверху
-
+      // ── Слайдер (ruler) ──────────────────────────────────────────────────────
       function rulerH() {
         return ruler.getBoundingClientRect().height;
       }
 
-      // Обчислює базову позицію точки машини від низу слайдера
+      // Базова позиція точки машини від низу слайдера
       function getRulerDotBottom(rH, H, carY) {
-        // Машина на 93% висоти сцени → 7% від верху → 7% від низу слайдера (над фазою)
-        const pos =
-          RULER_PHASE_H +
-          Math.max(4, (1 - carY / H) * (rH - RULER_PHASE_H - RULER_HDR_H));
-        return pos;
+        return RULER_PHASE_H + Math.max(4, (1 - carY / H) * (rH - RULER_PHASE_H - RULER_HDR_H));
       }
 
       function updateRulerDot() {
         const { H, carY } = getLayout();
         const rH = rulerH();
         const dotBottom = getRulerDotBottom(rH, H, carY);
-        rulerDot.style.bottom = dotBottom + "px";
-        document.getElementById("rulerZones").style.bottom = dotBottom + "px";
+        rulerDot.style.bottom      = dotBottom + "px";
+        rulerZonesEl.style.bottom  = dotBottom + "px";
       }
 
-      function rulerIdlePreview() {
-        const { pxM, carY, H } = getLayout();
-        const rH = rulerH();
-        const dotBottom = getRulerDotBottom(rH, H, carY);
-        const avail = rH - dotBottom - RULER_HDR_H;
-        // Масштаб: пропорційно заповнюємо доступний простір
-        const scale = S.total > 0 ? Math.min(1, avail / (S.total * pxM)) : 1;
-        const rpx = Math.min(S.react * pxM * scale, avail);
-        const bpx = Math.min(S.brake * pxM * scale, avail - rpx);
-
-        rzReact.style.height = rpx + "px";
-        rzBrake.style.height = bpx + "px";
-        rzReactM.textContent = S.react + " м";
-        rzBrakeM.textContent = S.brake + " м";
-        rzReactM.classList.toggle("show", rpx > 22);
-        rzBrakeM.classList.toggle("show", bpx > 22);
-        rzReactL.classList.toggle("show", rpx > 44);
-        rzBrakeL.classList.toggle("show", bpx > 44);
-
-        rulerDot.style.bottom = dotBottom + "px";
-      }
-
-      function rulerLive() {
-        if (
-          S.phase === "idle" ||
-          S.phase === "cruise" ||
-          S.phase === "anticipate"
-        )
-          return;
-        const { pxM, carY, H } = getLayout();
+      // Єдина функція оновлення слайдера — замість двох дублікатів.
+      // live=false: показує статичний preview (idle); live=true: реальні дані під час руху.
+      function updateRuler(layout, live) {
+        const { pxM, carY, H } = layout;
         const rH = rulerH();
         const baseDotBottom = getRulerDotBottom(rH, H, carY);
         const avail = rH - baseDotBottom - RULER_HDR_H;
-
-        // Синхронізація: той самий scale що й у idle preview
         const scale = S.total > 0 ? Math.min(1, avail / (S.total * pxM)) : 1;
-        const rpx = Math.min(S.rTraveled * pxM * scale, avail);
-        const bpx = Math.min(S.bTraveled * pxM * scale, avail - rpx);
+
+        const rVal = live ? S.rTraveled : S.react;
+        const bVal = live ? S.bTraveled : S.brake;
+        const rpx = Math.min(rVal * pxM * scale, avail);
+        const bpx = Math.min(bVal * pxM * scale, avail - rpx);
 
         rzReact.style.height = rpx + "px";
         rzBrake.style.height = bpx + "px";
-        rzReactM.textContent = Math.round(S.rTraveled) + " м";
-        rzBrakeM.textContent = Math.round(S.bTraveled) + " м";
+        rzReactM.textContent = (live ? Math.round(rVal) : rVal) + " м";
+        rzBrakeM.textContent = (live ? Math.round(bVal) : bVal) + " м";
         rzReactM.classList.toggle("show", rpx > 22);
         rzBrakeM.classList.toggle("show", bpx > 22);
         rzReactL.classList.toggle("show", rpx > 44);
         rzBrakeL.classList.toggle("show", bpx > 44);
 
-        // Точка рухається вгору синхронно з зонами
-        rulerDot.style.bottom = baseDotBottom + rpx + bpx + "px";
+        rulerDot.style.bottom = (baseDotBottom + (live ? rpx + bpx : 0)) + "px";
 
-        // Динамічний підпис фази знизу слайдера
-        if (S.phase === "react") {
-          rulerPhaseEl.innerHTML = `⚡ Реакція<br><span style="font-size:12px;color:var(--yellow)">${Math.round(S.rTraveled)} м</span>`;
-        } else if (S.phase === "brake") {
-          rulerPhaseEl.innerHTML = `🛑 Гальмо<br><span style="font-size:12px;color:var(--red)">${Math.round(S.bTraveled)} м</span>`;
+        // Динамічний підпис: оновлюємо два окремі span-и, не innerHTML
+        if (live && S.phase === "react") {
+          rulerPhaseLbl.textContent = "⚡ Реакція";
+          rulerPhaseM.textContent   = Math.round(S.rTraveled) + " м";
+          rulerPhaseM.style.color   = "var(--yellow)";
+        } else if (live && S.phase === "brake") {
+          rulerPhaseLbl.textContent = "🛑 Гальмо";
+          rulerPhaseM.textContent   = Math.round(S.bTraveled) + " м";
+          rulerPhaseM.style.color   = "var(--red)";
         }
+      }
+
+      function rulerIdlePreview(layout) {
+        updateRuler(layout || getLayout(), false);
+      }
+
+      function rulerLive(layout) {
+        if (S.phase === "idle" || S.phase === "cruise" || S.phase === "anticipate") return;
+        updateRuler(layout, true);
       }
 
       function rulerReset() {
@@ -874,29 +877,29 @@
         updateRulerDot();
       }
 
+      // ── Банер та фазові індикатори ───────────────────────────────────────────
       function showBanner(type, txt) {
-        bannerEl.className = "banner show " + type;
+        bannerEl.className   = "banner show " + type;
         bannerEl.textContent = txt;
       }
       function hideBanner() {
         bannerEl.className = "banner";
       }
-      // Фазовий індикатор на лівому слайдері
-      function setRulerPhase(phClass, lines) {
-        rulerPhaseEl.className = "ruler-phase" + (phClass ? " " + phClass : "");
-        rulerPhaseEl.innerHTML = lines;
+
+      function setRulerPhase(phClass, label) {
+        rulerPhaseEl.className    = "ruler-phase" + (phClass ? " " + phClass : "");
+        rulerPhaseLbl.textContent = label;
+        rulerPhaseM.textContent   = "";
       }
       function resetRulerPhase() {
-        rulerPhaseEl.className = "ruler-phase";
-        rulerPhaseEl.textContent = "—";
+        rulerPhaseEl.className    = "ruler-phase";
+        rulerPhaseLbl.textContent = "—";
+        rulerPhaseM.textContent   = "";
       }
-      function hlReact(on) {
-        cardReact.classList.toggle("hl-react", on);
-      }
-      function hlBrake(on) {
-        cardBrake.classList.toggle("hl-brake", on);
-      }
-      const hud = document.querySelector(".hud");
+
+      function hlReact(on) { cardReact.classList.toggle("hl-react", on); }
+      function hlBrake(on) { cardBrake.classList.toggle("hl-brake", on); }
+
       function setHudMode(mode) {
         hud.className = "hud" + (mode ? " hud-" + mode : "");
       }
@@ -925,17 +928,14 @@
 
       function showResult() {
         const t = Math.floor(S.kmh / 10);
-        document.querySelector(".hud-main-label").textContent =
-          "✅ Зупинковий шлях";
-        document.getElementById("uiTotal").textContent = S.total;
-        document.getElementById("uiSpeed").textContent =
-          `${t} × ${t} = ${S.total} м · реакція ${S.react} + гальмо ${S.brake}`;
-        document.getElementById("uiSpeed").style.display = "";
-        document.getElementById("uiReact").textContent = S.react;
-        document.getElementById("uiBrake").textContent = S.brake;
-        document.getElementById("lblReact").textContent = `Реакція ~1 с`;
+        hudMainLabel.textContent = "✅ Зупинковий шлях";
+        hudMainVal.textContent   = S.total;
+        hudMainSub.textContent   = `${t} × ${t} = ${S.total} м · реакція ${S.react} + гальмо ${S.brake}`;
+        elReact.textContent      = S.react;
+        elBrake.textContent      = S.brake;
+        elLblReact.textContent   = "Реакція ~1 с";
         setHudMode("result");
-        speedWrap.style.opacity = "1";
+        speedWrap.style.opacity      = "1";
         speedWrap.style.pointerEvents = "auto";
         S.phase = "idle";
       }
@@ -1086,8 +1086,8 @@
       }
 
       /* ── Main draw ── */
-      function draw() {
-        const { W, H, roadW, cx, carY, pxM } = getLayout();
+      function draw(layout) {
+        const { W, H, roadW, cx, carY, pxM } = layout;
 
         ctx.fillStyle = "#052e16";
         ctx.fillRect(0, 0, W, H);
@@ -1213,7 +1213,10 @@
         let dt = (ts - lastT) / 1000;
         if (dt > 0.1) dt = 0.1;
         lastT = ts;
-        const { pxM, carY } = getLayout();
+
+        // Єдиний виклик getLayout на кадр — результат передається далі
+        const layout = getLayout();
+        const { pxM, carY, roadW } = layout;
         const mps = (S.kmh * 1000) / 3600;
 
         let curMps = mps;
@@ -1228,9 +1231,10 @@
           if (spd <= 0) return;
           const px = spd * pxM * dt;
           S.roadOff = (S.roadOff + px) % 40;
+          // Використовуємо layout.H з замкненого scope — без повторного getLayout()
           S.trees.forEach((t) => {
             t.y += px;
-            if (t.y > getLayout().H + 40) {
+            if (t.y > layout.H + 40) {
               t.y = -40;
               t.side = Math.random() > 0.5 ? 1 : -1;
             }
@@ -1252,9 +1256,8 @@
               S.bTraveled += curMps * dt;
             }
 
-            // Пішохід рухається горизонтально через дорогу (1.3 м/с → ~roadW px за 4-5 с)
-            const { roadW: rW } = getLayout();
-            const pedSpeed = rW / 4.5; // px/s
+            // Пішохід рухається горизонтально (1.3 м/с → ~roadW px за 4-5 с)
+            const pedSpeed = roadW / 4.5; // px/s
             S.pedX += pedSpeed * S.pedWalkDir * dt;
             S.pedWalkTime += dt;
           }
@@ -1262,8 +1265,7 @@
 
         // Фаза done: пішохід продовжує йти (вже минув)
         if (S.phase === "done" && S.obsActive) {
-          const { roadW: rW } = getLayout();
-          S.pedX += (rW / 4.5) * S.pedWalkDir * dt;
+          S.pedX += (roadW / 4.5) * S.pedWalkDir * dt;
           S.pedWalkTime += dt;
         }
 
@@ -1275,12 +1277,10 @@
             S.bTraveled = 0;
             S.userReactSec = 0;
             S.pedDist = S.total + 2;
-            const { cx, roadW } = getLayout();
             // Пішохід починає з лівого краю дороги
-            S.pedX = cx - roadW / 2 - 2;
+            S.pedX = layout.cx - roadW / 2 - 2;
             S.pedWalkDir = 1; // іде вправо
             S.pedWalkTime = 0;
-            S.targetPedX = S.pedX;
             S.phase = "anticipate";
             setHudMode("cruise");
             showBanner("warn", "👀 ОЦІНЮЙТЕ ОБСТАНОВКУ");
@@ -1312,7 +1312,7 @@
             setRulerPhase("ph-brake", "🛑 Гальмо");
           }
         } else if (S.phase === "brake") {
-          if (curMps <= 0.05 || S.bTraveled >= S.brake) {
+          if (curMps <= STOP_SPEED_MPS || S.bTraveled >= S.brake) {
             S.bTraveled = S.brake;
             S.phase = "done";
             hlBrake(false);
@@ -1321,9 +1321,9 @@
           }
         }
 
-        rulerLive();
+        rulerLive(layout);
         updateHudMain();
-        draw();
+        draw(layout);
         requestAnimationFrame(loop);
       }
 
