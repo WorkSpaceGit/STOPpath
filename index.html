@@ -96,6 +96,7 @@
         gap: 8px;
         flex-shrink: 0;
         background: var(--bg);
+        transition: all 0.4s ease;
       }
 
       .hud-main {
@@ -144,59 +145,12 @@
         transition: color 0.4s;
       }
 
-      .hud-row {
-        display: flex;
-        gap: 8px;
-      }
-      .hud-card {
-        flex: 1;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 8px 12px;
-        text-align: center;
-        transition: border-color 0.3s, background 0.3s;
-      }
-      .hud-label {
-        font-size: 10px;
-        color: var(--muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        margin-bottom: 2px;
-      }
-      .hud-value {
-        font-family: "Barlow Condensed", sans-serif;
-        font-size: 24px;
-        font-weight: 700;
-        line-height: 1;
-      }
-      .hud-unit {
-        font-size: 12px;
-        font-weight: 400;
-        color: var(--muted);
-        margin-left: 2px;
-      }
-      .hl-react {
-        border-color: var(--yellow) !important;
-        background: rgba(234, 179, 8, 0.1) !important;
-      }
-      .hl-brake {
-        border-color: var(--red) !important;
-        background: rgba(239, 68, 68, 0.1) !important;
-      }
-
-      .hud {
-        transition: all 0.4s ease;
-      }
+      /* Стан фази Cruise */
       .hud.hud-cruise .hud-main-sub {
         visibility: hidden;
       }
-      .hud.hud-cruise .hud-row {
-        opacity: 0.35;
-        pointer-events: none;
-      }
 
+      /* Стан фази React */
       .hud.hud-react .hud-main {
         border-color: var(--yellow);
         background: rgba(234, 179, 8, 0.07);
@@ -214,11 +168,8 @@
       .hud.hud-react .hud-main-sub {
         color: rgba(234,179,8,0.7);
       }
-      .hud.hud-react .hud-row {
-        opacity: 0.2;
-        pointer-events: none;
-      }
 
+      /* Стан фази Brake */
       .hud.hud-brake .hud-main {
         border-color: var(--red);
         background: rgba(239, 68, 68, 0.07);
@@ -236,11 +187,20 @@
       .hud.hud-brake .hud-main-sub {
         color: rgba(239,68,68,0.7);
       }
-      .hud.hud-brake #cardReact {
-        opacity: 0.2;
+
+      /* Стан фази Result */
+      .hud.hud-result .hud-main {
+        border-color: var(--green);
+        background: rgba(34, 197, 94, 0.07);
       }
-      .hud.hud-brake #cardBrake {
-        opacity: 1;
+      .hud.hud-result .hud-main-label {
+        color: var(--green);
+      }
+      .hud.hud-result .hud-main-val {
+        color: var(--green);
+      }
+      .hud.hud-result .hud-main::before {
+        background: var(--green);
       }
 
       .sim-area {
@@ -290,21 +250,6 @@
         border: 1px solid rgba(249, 115, 22, 0.55);
         color: var(--orange);
       }
-      .banner.react {
-        background: rgba(234, 179, 8, 0.15);
-        border: 1px solid rgba(234, 179, 8, 0.55);
-        color: var(--yellow);
-      }
-      .banner.brake {
-        background: rgba(239, 68, 68, 0.15);
-        border: 1px solid rgba(239, 68, 68, 0.55);
-        color: var(--red);
-      }
-      .banner.done {
-        background: rgba(34, 197, 94, 0.15);
-        border: 1px solid rgba(34, 197, 94, 0.55);
-        color: var(--green);
-      }
 
       .controls {
         padding: 12px 0;
@@ -344,26 +289,6 @@
           0 6px 16px rgba(218, 37, 29, 0.5);
         z-index: 2;
       }
-
-      .hud.hud-result .hud-main {
-        border-color: var(--green);
-        background: rgba(34, 197, 94, 0.07);
-      }
-      .hud.hud-result .hud-main-label {
-        color: var(--green);
-      }
-      .hud.hud-result .hud-main-val {
-        color: var(--green);
-      }
-      .hud.hud-result .hud-main::before {
-        background: var(--green);
-      }
-      .hud.hud-result #cardReact {
-        opacity: 1;
-      }
-      .hud.hud-result #cardBrake {
-        opacity: 1;
-      }
     </style>
   </head>
   <body>
@@ -382,25 +307,6 @@
           </div>
           <div class="hud-main-sub">
             <span id="uiSpeed">при 50 км/год</span>
-          </div>
-        </div>
-
-        <div class="hud-row">
-          <div class="hud-card" id="cardReact">
-            <div class="hud-label" id="lblReact" style="color: var(--yellow)">
-              Реакція (~1 с = ~14 м)
-            </div>
-            <div class="hud-value" style="color: var(--yellow)">
-              <span id="uiReact">14</span><span class="hud-unit">м</span>
-            </div>
-          </div>
-          <div class="hud-card" id="cardBrake">
-            <div class="hud-label" style="color: var(--red)">
-              Гальмовий шлях
-            </div>
-            <div class="hud-value" style="color: var(--red)">
-              <span id="uiBrake">11</span><span class="hud-unit">м</span>
-            </div>
           </div>
         </div>
       </div>
@@ -438,11 +344,6 @@
       const hudMainLabel = document.querySelector(".hud-main-label");
       const hudMainVal   = document.getElementById("uiTotal");
       const hudMainSub   = document.getElementById("uiSpeed");
-      const cardReact    = document.getElementById("cardReact");
-      const cardBrake    = document.getElementById("cardBrake");
-      const elReact      = document.getElementById("uiReact");
-      const elBrake      = document.getElementById("uiBrake");
-      const elLblReact   = document.getElementById("lblReact");
 
       // ── Константи ────────────────────────────────────────────────────────────
       const CAR_W      = 30;
@@ -480,7 +381,7 @@
         userReactSec: 0,
       };
 
-      // ── Глобальний стан розмітки (Layout) для оптимізації ──────────────────
+      // ── Глобальний стан розмітки (Layout) ──────────────────
       const layoutState = { W: 0, H: 0, roadW: 0, cx: 0, carY: 0, pxM: 0 };
 
       function updateLayout() {
@@ -490,7 +391,7 @@
         layoutState.roadW = Math.min(150, layoutState.W * 0.55);
         layoutState.cx = layoutState.W / 2;
         layoutState.carY = layoutState.H * CAR_Y_FRAC;
-        // Оптимізація: масштаб тепер гарантує, що гальмівний шлях влізе в екран
+        // Оптимізація: масштаб гарантує, що шлях влізе в збільшений екран
         layoutState.pxM = Math.min(30, (layoutState.H * SCENE_FRAC) / Math.max(S.total, 1));
       }
 
@@ -541,9 +442,6 @@
         S.brake = c.brake;
         hudMainSub.textContent   = `при ${v} км/год`;
         hudMainVal.textContent   = c.total;
-        elReact.textContent      = c.react;
-        elBrake.textContent      = c.brake;
-        elLblReact.textContent   = `Реакція (~1 с = ~${c.react} м)`;
         hudMainLabel.textContent = "Зупинковий шлях";
       }
 
@@ -595,9 +493,6 @@
         bannerEl.className = "banner";
       }
 
-      function hlReact(on) { cardReact.classList.toggle("hl-react", on); }
-      function hlBrake(on) { cardBrake.classList.toggle("hl-brake", on); }
-
       function setHudMode(mode) {
         hud.className = "hud" + (mode ? " hud-" + mode : "");
       }
@@ -614,8 +509,6 @@
         S.pedWalkTime = 0;
         S.pedWalkDir = 1;
 
-        hlReact(false);
-        hlBrake(false);
         hideBanner();
         setHudMode("cruise");
         speedWrap.style.opacity = "0.4";
@@ -626,10 +519,7 @@
         const t = Math.floor(S.kmh / 10);
         hudMainLabel.textContent = "✅ Зупинковий шлях";
         hudMainVal.textContent   = S.total;
-        hudMainSub.textContent   = `${t} × ${t} = ${S.total} м · реакція ${S.react} + гальмо ${S.brake}`;
-        elReact.textContent      = S.react;
-        elBrake.textContent      = S.brake;
-        elLblReact.textContent   = "Реакція ~1 с";
+        hudMainSub.textContent   = `${t} × ${t} = ${S.total} м · реакція ${S.react} м + гальмо ${S.brake} м`;
         setHudMode("result");
         speedWrap.style.opacity      = "1";
         speedWrap.style.pointerEvents = "auto";
@@ -647,26 +537,30 @@
         ctx.closePath();
       }
 
-      // Функція малювання дорожніх знаків (формат 5.49 та 5.50)
-      function drawRoadSign(x, y, text, type, side) {
+      // Функція малювання дорожніх знаків
+      // Перероблена математика: groundY - це лінія "на землі", де має стояти стовпчик
+      function drawRoadSign(x, groundY, text, type, side) {
         ctx.save();
         ctx.font = "bold 12px 'Barlow Condensed', sans-serif";
         const tw = ctx.measureText(text).width;
         const w = tw + 16;
         const h = 22;
+        const poleH = 16;
         const sx = side === 1 ? x : x - w;
-        const sy = y - h / 2;
+        
+        // Верхня координата самого знаку
+        const sy = groundY - poleH - h;
 
-        // Стовпчик
+        // Стовпчик малюється від низу знаку (groundY - poleH) до самої землі (groundY)
         ctx.fillStyle = "#94a3b8";
-        ctx.fillRect(sx + w / 2 - 1.5, sy + h, 3, 16);
+        ctx.fillRect(sx + w / 2 - 1.5, groundY - poleH, 3, poleH);
 
         // Білий фон
         ctx.fillStyle = "#ffffff";
         rr(sx, sy, w, h, 3);
         ctx.fill();
 
-        // Синя рамка (стиль інформаційних знаків України)
+        // Синя рамка
         ctx.strokeStyle = "#005a9c";
         ctx.lineWidth = 1.5;
         rr(sx + 1.5, sy + 1.5, w - 3, h - 3, 2);
@@ -678,7 +572,7 @@
         ctx.textBaseline = "middle";
         ctx.fillText(text.toUpperCase(), sx + w / 2, sy + h / 2 + 1);
 
-        // Перекреслення червоним для знаків типу 5.50 (кінець зони)
+        // Перекреслення (для знаків 5.50 - Кінець зони)
         if (type === 'end') {
           ctx.strokeStyle = "#da251d";
           ctx.lineWidth = 2;
@@ -808,7 +702,7 @@
       /* ── Пішохідний перехід ── */
       function drawCrosswalk(cx, roadW, y) {
         const stripeH = 9;
-        const count = 7; // Змінено з 8 на 7 (закінчується білою смугою)
+        const count = 7; 
         const totalH = count * stripeH;
         const startY = y - totalH / 2;
 
@@ -866,7 +760,7 @@
           drawCrosswalk(cx, roadW, crossY);
         }
 
-        const CROSSWALK_HALF = 31.5; // Адаптовано під 7 смуг (замість 56)
+        const CROSSWALK_HALF = 31.5; 
         const STOP_GAP = 6;
         let activeCarY;
         
@@ -879,17 +773,18 @@
           const dangerY = S.fixedDangerY;
           const rpx = S.rTraveled * pxM;
 
-          // Жовта зона (візуальне підсвічування шляху реакції)
+          // Жовта зона 
           if (rpx > 0) {
             ctx.fillStyle = "rgba(234,179,8,0.22)";
             ctx.fillRect(cx - roadW / 2 + 2, dangerY - rpx, roadW - 4, rpx);
           }
 
-          // Червона зона (візуальне підсвічування гальмівного шляху)
+          // Червона зона 
           const carNoseY = activeCarY - CAR_H / 2;
           const redTop = carNoseY;
           const redBot = dangerY - rpx;
           const bpxReal = redBot - redTop;
+          
           if (bpxReal > 0) {
             ctx.fillStyle = "rgba(239,68,68,0.28)";
             ctx.fillRect(cx - roadW / 2 + 2, redTop, roadW - 4, bpxReal);
@@ -898,36 +793,33 @@
           // Початкова жовта лінія реакції
           ctx.fillStyle = "#facc15";
           ctx.fillRect(cx - roadW / 2, dangerY, roadW, 3);
-        } else {
-          activeCarY = carY;
-        }
-
-        // Відображення дорожніх знаків
-        if (S.cameraLocked) {
+          
+          // Відображення дорожніх знаків (тепер groundY - це лінія з якої починається стовпчик)
           const isFinished = S.phase === "done" || (S.phase === "idle" && S.cameraLocked);
           const isBrakingOrFinished = S.phase === "brake" || isFinished;
           
-          const signRightX = cx + roadW / 2 + 8; // Відступ від правого краю
-          const signLeftX  = cx - roadW / 2 - 8; // Відступ від лівого краю
+          const signRightX = cx + roadW / 2 + 8;
+          const signLeftX  = cx - roadW / 2 - 8;
 
-          // 1. Знак "Початок реакції" (справа) - з'являється одразу при фіксації камери
-          drawRoadSign(signRightX, S.fixedDangerY, "Час реакції", 'start', 1);
+          // 1. Початок реакції - база стовпчика рівно на жовтій лінії початку
+          drawRoadSign(signRightX, dangerY, "Час реакції", 'start', 1);
 
-          // Якщо фаза реакції завершена (ми на стадії гальмування або вже зупинились)
           if (isBrakingOrFinished) {
-            const reactEndWorldY = S.fixedDangerY - (S.rTraveled * pxM);
-            // 2. Знак "Кінець часу реакції" (зліва)
+            const reactEndWorldY = dangerY - rpx;
+            // 2. Кінець реакції - зліва, в один ряд з початком червоної зони
             drawRoadSign(signLeftX, reactEndWorldY, "Час реакції", 'end', -1);
-            // 3. Знак "Початок гальмівного шляху" (справа)
+            // 3. Початок гальмівного шляху - справа, в один ряд з початком червоної зони
             drawRoadSign(signRightX, reactEndWorldY, "Гальмівний шлях", 'start', 1);
           }
 
-          // Якщо машина повністю зупинилась
           if (isFinished) {
-            const brakeEndWorldY = S.fixedDangerY - ((S.rTraveled + S.bTraveled) * pxM);
-            // 4. Знак "Кінець гальмівного шляху" (зліва)
+            // 4. Кінець гальмівного шляху - зліва, база стовпчика рівно на лінії закінчення червоної зони (ніс авто)
+            const brakeEndWorldY = redTop;
             drawRoadSign(signLeftX, brakeEndWorldY, "Гальмівний шлях", 'end', -1);
           }
+          
+        } else {
+          activeCarY = carY;
         }
 
         if (S.obsActive) {
@@ -1000,14 +892,12 @@
 
         if (S.phase === "cruise") {
           S.cruiseSec += dt;
-          // Починаємо сценарій раніше (0.5с), даючи час на "наближення"
           if (!S.obsActive && S.cruiseSec > 0.5) {
             S.obsActive = true;
             S.rTraveled = 0;
             S.bTraveled = 0;
             S.userReactSec = 0;
 
-            // З'являється плавно зверху (за межами екрану або далеко)
             const maxVisibleDist = layout.carY / layout.pxM;
             S.pedDist = Math.max(S.total + (curMps * 1.5), maxVisibleDist + 1);
 
@@ -1031,22 +921,18 @@
             S.rTraveled = 0;
             S.bTraveled = 0;
             S.userReactSec = 0;
-            hlReact(true);
             setHudMode("react");
             hideBanner();
           }
         } else if (S.phase === "react") {
           if (S.userReactSec >= 1.2 || S.rTraveled >= S.react) {
             S.phase = "brake";
-            hlReact(false);
-            hlBrake(true);
             setHudMode("brake");
           }
         } else if (S.phase === "brake") {
           if (curMps <= STOP_SPEED_MPS || S.bTraveled >= S.brake) {
             S.bTraveled = S.brake;
             S.phase = "done";
-            hlBrake(false);
             setTimeout(showResult, 1000);
           }
         }
