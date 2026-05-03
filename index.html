@@ -490,7 +490,8 @@
         layoutState.roadW = Math.min(150, layoutState.W * 0.55);
         layoutState.cx = layoutState.W / 2;
         layoutState.carY = layoutState.H * CAR_Y_FRAC;
-        layoutState.pxM = Math.max(4, (layoutState.H * SCENE_FRAC) / Math.max(S.total, 1));
+        // Оптимізація: масштаб тепер гарантує, що гальмівний шлях влізе в екран
+        layoutState.pxM = Math.min(30, (layoutState.H * SCENE_FRAC) / Math.max(S.total, 1));
       }
 
       // ── Знаки швидкості ──────────────────────────────────────────────────────
@@ -726,11 +727,13 @@
         ctx.save();
 
         let bodyColor, headFill, glowColor;
+        const isFinished = phase === "done" || (phase === "idle" && S.cameraLocked);
+
         if (phase === "react") {
           bodyColor = "#ef4444";
           headFill = "#fecaca";
           glowColor = "rgba(239,68,68,0.6)";
-        } else if (phase === "done") {
+        } else if (isFinished) {
           bodyColor = "#22c55e";
           headFill = "#dcfce7";
           glowColor = "rgba(34,197,94,0.6)";
@@ -805,7 +808,7 @@
       /* ── Пішохідний перехід ── */
       function drawCrosswalk(cx, roadW, y) {
         const stripeH = 9;
-        const count = 8;
+        const count = 7; // Змінено з 8 на 7 (закінчується білою смугою)
         const totalH = count * stripeH;
         const startY = y - totalH / 2;
 
@@ -863,7 +866,7 @@
           drawCrosswalk(cx, roadW, crossY);
         }
 
-        const CROSSWALK_HALF = 56;
+        const CROSSWALK_HALF = 31.5; // Адаптовано під 7 смуг (замість 56)
         const STOP_GAP = 6;
         let activeCarY;
         
@@ -901,6 +904,9 @@
 
         // Відображення дорожніх знаків
         if (S.cameraLocked) {
+          const isFinished = S.phase === "done" || (S.phase === "idle" && S.cameraLocked);
+          const isBrakingOrFinished = S.phase === "brake" || isFinished;
+          
           const signRightX = cx + roadW / 2 + 8; // Відступ від правого краю
           const signLeftX  = cx - roadW / 2 - 8; // Відступ від лівого краю
 
@@ -908,7 +914,7 @@
           drawRoadSign(signRightX, S.fixedDangerY, "Час реакції", 'start', 1);
 
           // Якщо фаза реакції завершена (ми на стадії гальмування або вже зупинились)
-          if (S.phase === "brake" || S.phase === "done") {
+          if (isBrakingOrFinished) {
             const reactEndWorldY = S.fixedDangerY - (S.rTraveled * pxM);
             // 2. Знак "Кінець часу реакції" (зліва)
             drawRoadSign(signLeftX, reactEndWorldY, "Час реакції", 'end', -1);
@@ -917,7 +923,7 @@
           }
 
           // Якщо машина повністю зупинилась
-          if (S.phase === "done") {
+          if (isFinished) {
             const brakeEndWorldY = S.fixedDangerY - ((S.rTraveled + S.bTraveled) * pxM);
             // 4. Знак "Кінець гальмівного шляху" (зліва)
             drawRoadSign(signLeftX, brakeEndWorldY, "Гальмівний шлях", 'end', -1);
@@ -929,7 +935,7 @@
           drawPedestrian(S.pedX, pedY, S.pedWalkTime, S.phase);
         }
 
-        const braking = S.phase === "brake" || S.phase === "done";
+        const braking = S.phase === "brake" || S.phase === "done" || (S.phase === "idle" && S.cameraLocked);
         drawCar(cx, activeCarY, "#3b82f6", braking);
       }
 
@@ -987,20 +993,25 @@
           }
         }
 
-        if (S.phase === "done" && S.obsActive) {
+        if ((S.phase === "done" || (S.phase === "idle" && S.cameraLocked)) && S.obsActive) {
           S.pedX += (roadW / 4.5) * S.pedWalkDir * dt;
           S.pedWalkTime += dt;
         }
 
         if (S.phase === "cruise") {
           S.cruiseSec += dt;
-          if (!S.obsActive && S.cruiseSec > 1.4) {
+          // Починаємо сценарій раніше (0.5с), даючи час на "наближення"
+          if (!S.obsActive && S.cruiseSec > 0.5) {
             S.obsActive = true;
             S.rTraveled = 0;
             S.bTraveled = 0;
             S.userReactSec = 0;
-            S.pedDist = S.total + 2;
-            S.pedX = layout.cx - roadW / 2 - 2;
+
+            // З'являється плавно зверху (за межами екрану або далеко)
+            const maxVisibleDist = layout.carY / layout.pxM;
+            S.pedDist = Math.max(S.total + (curMps * 1.5), maxVisibleDist + 1);
+
+            S.pedX = layout.cx - layout.roadW / 2 - 2;
             S.pedWalkDir = 1; 
             S.pedWalkTime = 0;
             S.phase = "anticipate";
