@@ -21,7 +21,7 @@
       href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-
+ 
     <style>
       :root {
         --bg: #0b1120;
@@ -59,7 +59,7 @@
         max-width: 480px;
         margin: 0 auto;
       }
-
+ 
       header {
         display: flex;
         align-items: center;
@@ -88,7 +88,7 @@
         padding: 2px 8px;
         border-radius: 20px;
       }
-
+ 
       .hud {
         display: flex;
         flex-direction: column;
@@ -98,7 +98,7 @@
         background: var(--bg);
         transition: all 0.4s ease;
       }
-
+ 
       .hud-main {
         background: var(--surface);
         border: 2px solid var(--blue);
@@ -141,68 +141,42 @@
         font-size: 13px;
         color: var(--muted);
         font-weight: 500;
-        min-height: 18px; 
+        min-height: 18px;
         transition: color 0.4s;
       }
-
-      /* Стан фази Cruise */
+ 
       .hud.hud-cruise .hud-main-sub {
         visibility: hidden;
       }
-
-      /* Стан фази React */
+ 
       .hud.hud-react .hud-main {
         border-color: var(--yellow);
         background: rgba(234, 179, 8, 0.07);
         box-shadow: 0 4px 16px rgba(234, 179, 8, 0.2);
       }
-      .hud.hud-react .hud-main::before {
-        background: var(--yellow);
-      }
-      .hud.hud-react .hud-main-val {
-        color: var(--yellow);
-      }
-      .hud.hud-react .hud-main-label {
-        color: var(--yellow);
-      }
-      .hud.hud-react .hud-main-sub {
-        color: rgba(234,179,8,0.7);
-      }
-
-      /* Стан фази Brake */
+      .hud.hud-react .hud-main::before { background: var(--yellow); }
+      .hud.hud-react .hud-main-val     { color: var(--yellow); }
+      .hud.hud-react .hud-main-label   { color: var(--yellow); }
+      .hud.hud-react .hud-main-sub     { color: rgba(234,179,8,0.7); }
+ 
       .hud.hud-brake .hud-main {
         border-color: var(--red);
         background: rgba(239, 68, 68, 0.07);
         box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
       }
-      .hud.hud-brake .hud-main::before {
-        background: var(--red);
-      }
-      .hud.hud-brake .hud-main-val {
-        color: var(--red);
-      }
-      .hud.hud-brake .hud-main-label {
-        color: var(--red);
-      }
-      .hud.hud-brake .hud-main-sub {
-        color: rgba(239,68,68,0.7);
-      }
-
-      /* Стан фази Result */
+      .hud.hud-brake .hud-main::before { background: var(--red); }
+      .hud.hud-brake .hud-main-val     { color: var(--red); }
+      .hud.hud-brake .hud-main-label   { color: var(--red); }
+      .hud.hud-brake .hud-main-sub     { color: rgba(239,68,68,0.7); }
+ 
       .hud.hud-result .hud-main {
         border-color: var(--green);
         background: rgba(34, 197, 94, 0.07);
       }
-      .hud.hud-result .hud-main-label {
-        color: var(--green);
-      }
-      .hud.hud-result .hud-main-val {
-        color: var(--green);
-      }
-      .hud.hud-result .hud-main::before {
-        background: var(--green);
-      }
-
+      .hud.hud-result .hud-main-label  { color: var(--green); }
+      .hud.hud-result .hud-main-val    { color: var(--green); }
+      .hud.hud-result .hud-main::before { background: var(--green); }
+ 
       .sim-area {
         flex: 1;
         display: flex;
@@ -211,7 +185,7 @@
         border-bottom: 1px solid var(--border);
         overflow: hidden;
       }
-
+ 
       .canvas-wrap {
         flex: 1;
         position: relative;
@@ -222,7 +196,7 @@
         width: 100%;
         height: 100%;
       }
-
+ 
       .banner {
         position: absolute;
         top: 10px;
@@ -242,21 +216,19 @@
         transition: opacity 0.25s;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
       }
-      .banner.show {
-        opacity: 1;
-      }
+      .banner.show { opacity: 1; }
       .banner.warn {
         background: rgba(249, 115, 22, 0.15);
         border: 1px solid rgba(249, 115, 22, 0.55);
         color: var(--orange);
       }
-
+ 
       .controls {
         padding: 12px 0;
         flex-shrink: 0;
         background: var(--bg);
       }
-
+ 
       .speed-signs-wrap {
         display: flex;
         gap: 12px;
@@ -265,10 +237,8 @@
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
       }
-      .speed-signs-wrap::-webkit-scrollbar {
-        display: none;
-      }
-
+      .speed-signs-wrap::-webkit-scrollbar { display: none; }
+ 
       .speed-sign {
         width: 48px;
         height: 48px;
@@ -297,7 +267,7 @@
         <div class="header-title">Зупинковий <span>Шлях</span></div>
         <div class="badge">ПДР · Симулятор</div>
       </header>
-
+ 
       <div class="hud">
         <div class="hud-main">
           <div class="hud-main-label">Зупинковий шлях</div>
@@ -310,32 +280,31 @@
           </div>
         </div>
       </div>
-
+ 
       <div class="sim-area">
         <div class="canvas-wrap">
           <canvas id="simCanvas"></canvas>
           <div class="banner" id="banner"></div>
         </div>
       </div>
-
+ 
       <div class="controls">
         <div class="speed-signs-wrap" id="speedSignsWrap"></div>
       </div>
     </div>
-
+ 
     <script>
-      (function () {
-        const s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <rect width="100" height="100" rx="22" fill="#0b1120"/>
-    <rect x="14" y="60" width="30" height="7" rx="3" fill="#eab308"/>
-    <rect x="56" y="60" width="30" height="7" rx="3" fill="#ef4444"/>
-    <text x="50" y="52" font-size="22" text-anchor="middle" fill="#fff" font-family="Arial Black,sans-serif" font-weight="900">ШЛЯХ</text>
-  </svg>`;
-        document.getElementById("favicon").href =
-          "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
-      })();
-
-      // ── Кешовані DOM-елементи ──────────────────────────
+      // ── Favicon ──────────────────────────────────────────────────────────────
+      document.getElementById("favicon").href = "data:image/svg+xml;charset=utf-8," +
+        encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <rect width="100" height="100" rx="22" fill="#0b1120"/>
+          <rect x="14" y="60" width="30" height="7" rx="3" fill="#eab308"/>
+          <rect x="56" y="60" width="30" height="7" rx="3" fill="#ef4444"/>
+          <text x="50" y="52" font-size="22" text-anchor="middle" fill="#fff"
+                font-family="Arial Black,sans-serif" font-weight="900">ШЛЯХ</text>
+        </svg>`);
+ 
+      // ── DOM-елементи ─────────────────────────────────────────────────────────
       const simCvs       = document.getElementById("simCanvas");
       const ctx          = simCvs.getContext("2d");
       const speedWrap    = document.getElementById("speedSignsWrap");
@@ -344,505 +313,494 @@
       const hudMainLabel = document.querySelector(".hud-main-label");
       const hudMainVal   = document.getElementById("uiTotal");
       const hudMainSub   = document.getElementById("uiSpeed");
-
+ 
       // ── Константи ────────────────────────────────────────────────────────────
-      const CAR_W      = 30;
-      const CAR_H      = 52;
-      const CAR_R      = 6;
-      const TREES      = 9;
-      const CAR_Y_FRAC = 0.93;
-      const SCENE_FRAC = 0.85;
-      const STOP_SPEED_MPS = 0.05;
-
+      const CAR_W           = 30;
+      const CAR_H           = 52;
+      const CAR_R           = 6;
+      const TREES           = 9;
+      const CAR_Y_FRAC      = 0.93;
+      const SCENE_FRAC      = 0.85;
+      const STOP_SPEED_MPS  = 0.05;
+      const TARGET_DURATION = 7;     // цільова тривалість slow-mo (сек)
+      const CROSSWALK_HALF  = 31.5;  // половина висоти пішохідного переходу (px)
+      const STOP_GAP        = 8;     // відступ між носом авто і переходом (px)
+      const PED_STRIDE_FREQ = 2.5;   // частота кроків пішохода (Hz)
+ 
       // ── Стан симуляції ───────────────────────────────────────────────────────
       const S = {
         phase: "idle",
         kmh: 50,
-        total: 0,
-        react: 0,
-        brake: 0,
+        total: 0, react: 0, brake: 0,
         roadOff: 0,
         trees: [],
-
-        pedDist: 0,
-        pedX: 0,
+ 
+        pedDist: 0, pedX: 0,
         obsActive: false,
-        pedWalkTime: 0,
-        pedWalkDir: 1,
-
+        pedWalkTime: 0, pedWalkDir: 1,
+ 
         cameraLocked: false,
         fixedDangerY: 0,
         fixedPedY: 0,
         crosswalkY: 0,
-
-        rTraveled: 0,
-        bTraveled: 0,
-        cruiseSec: 0,
-        userReactSec: 0,
+ 
+        rTraveled: 0, bTraveled: 0,
+        cruiseSec: 0, userReactSec: 0,
+ 
+        timeScale: 1,    // < 1 = slow-mo під час react/brake
+        lockedPxM: 0,    // фіксований масштаб після блокування камери
       };
-
-      // ── Глобальний стан розмітки (Layout) ──────────────────
-      const layoutState = { W: 0, H: 0, roadW: 0, cx: 0, carY: 0, pxM: 0 };
-
+ 
+      // ── Layout (оновлюється при resize та зміні швидкості) ──────────────────
+      const layout = { W: 0, H: 0, roadW: 0, cx: 0, carY: 0, pxM: 0 };
+ 
       function updateLayout() {
         const dpr = devicePixelRatio || 1;
-        layoutState.W = simCvs.width / dpr;
-        layoutState.H = simCvs.height / dpr;
-        layoutState.roadW = Math.min(150, layoutState.W * 0.55);
-        layoutState.cx = layoutState.W / 2;
-        layoutState.carY = layoutState.H * CAR_Y_FRAC;
-        // Оптимізація: масштаб гарантує, що шлях влізе в збільшений екран
-        layoutState.pxM = Math.min(30, (layoutState.H * SCENE_FRAC) / Math.max(S.total, 1));
+        layout.W    = simCvs.width / dpr;
+        layout.H    = simCvs.height / dpr;
+        layout.roadW = Math.min(150, layout.W * 0.55);
+        layout.cx   = layout.W / 2;
+        layout.carY = layout.H * CAR_Y_FRAC;
+        layout.pxM  = Math.min(30, (layout.H * SCENE_FRAC) / Math.max(S.total, 1));
       }
-
+ 
       // ── Знаки швидкості ──────────────────────────────────────────────────────
-      function buildSigns() {
+      (function buildSigns() {
         let html = "";
         for (let s = 30; s <= 130; s += 10) {
-          html += `<svg viewBox="0 0 100 100" class="speed-sign ${s === S.kmh ? "active" : ""}" data-speed="${s}">
-      <circle cx="50" cy="50" r="45" fill="#fff" stroke="#da251d" stroke-width="10"/>
-      <text x="50" y="68" font-family="'Barlow Condensed', sans-serif" font-size="46" font-weight="900" text-anchor="middle" fill="#000">${s}</text>
-    </svg>`;
+          html += `<svg viewBox="0 0 100 100" class="speed-sign${s === S.kmh ? " active" : ""}" data-speed="${s}">
+            <circle cx="50" cy="50" r="45" fill="#fff" stroke="#da251d" stroke-width="10"/>
+            <text x="50" y="68" font-family="'Barlow Condensed',sans-serif"
+                  font-size="46" font-weight="900" text-anchor="middle" fill="#000">${s}</text>
+          </svg>`;
         }
         speedWrap.innerHTML = html;
-      }
-      buildSigns();
-
+      })();
+ 
       speedWrap.addEventListener("click", (e) => {
         const sign = e.target.closest(".speed-sign");
         if (!sign) return;
-        setSpeed(parseInt(sign.dataset.speed));
+        setSpeed(parseInt(sign.dataset.speed, 10));
       });
-
+ 
       function setSpeed(v) {
         if (S.phase !== "idle" && S.phase !== "done") return;
         S.kmh = v;
         applyCalc(v);
         updateLayout();
         speedWrap.querySelectorAll(".speed-sign").forEach((el) =>
-          el.classList.toggle("active", parseInt(el.dataset.speed) === v),
+          el.classList.toggle("active", parseInt(el.dataset.speed, 10) === v)
         );
-        const sign = speedWrap.querySelector(`.speed-sign[data-speed="${v}"]`);
-        if (sign) sign.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        const active = speedWrap.querySelector(`.speed-sign[data-speed="${v}"]`);
+        if (active) active.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
         setTimeout(startSim, 300);
       }
-
+ 
       // ── Розрахунок відстаней ─────────────────────────────────────────────────
       function computeDist(v) {
-        const t = Math.floor(v / 10);
+        const t     = Math.floor(v / 10);
         const total = t * t;
         const react = Math.round((v * 1000) / 3600);
         return { total, react, brake: Math.max(1, total - react) };
       }
-
+ 
       function applyCalc(v) {
         const c = computeDist(v);
         S.total = c.total;
         S.react = c.react;
         S.brake = c.brake;
-        hudMainSub.textContent   = `при ${v} км/год`;
-        hudMainVal.textContent   = c.total;
         hudMainLabel.textContent = "Зупинковий шлях";
+        hudMainVal.textContent   = c.total;
+        hudMainSub.textContent   = `при ${v} км/год`;
       }
-
-      // ── Оновлення HUD під час симуляції ─────────────────────────────────────
+ 
+      // ── HUD-лічильник (викликається лише у фазах react/brake) ───────────────
       function updateHudMain() {
         if (S.phase === "react") {
-          const m = Math.round(S.rTraveled);
+          const m = S.rTraveled.toFixed(1);
           hudMainLabel.textContent = "⏱ Час реакції";
           hudMainVal.textContent   = m;
           hudMainSub.textContent   = `пройдено ${m} з ${S.react} м`;
         } else if (S.phase === "brake") {
-          const m = Math.round(S.bTraveled);
+          const m = S.bTraveled.toFixed(1);
           hudMainLabel.textContent = "🛑 Гальмовий шлях";
           hudMainVal.textContent   = m;
           hudMainSub.textContent   = `пройдено ${m} з ${S.brake} м`;
         }
       }
-
+ 
       // ── Дерева ───────────────────────────────────────────────────────────────
       function spawnTrees(H) {
-        S.trees = [];
-        for (let i = 0; i < TREES; i++)
-          S.trees.push({
-            y: (H / TREES) * i,
-            side: Math.random() > 0.5 ? 1 : -1,
-            sz: 12 + Math.random() * 9,
-          });
+        S.trees = Array.from({ length: TREES }, (_, i) => ({
+          y:    (H / TREES) * i,
+          side: Math.random() > 0.5 ? 1 : -1,
+          sz:   12 + Math.random() * 9,
+        }));
       }
-
+ 
       // ── Resize ───────────────────────────────────────────────────────────────
       function resize() {
         const dpr = devicePixelRatio || 1;
-        const rc = simCvs.parentElement.getBoundingClientRect();
+        const rc  = simCvs.parentElement.getBoundingClientRect();
         simCvs.width  = rc.width  * dpr;
         simCvs.height = rc.height * dpr;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        
         updateLayout();
-        spawnTrees(layoutState.H);
+        spawnTrees(layout.H);
       }
       window.addEventListener("resize", resize);
-
-      // ── Банер та керування фазами ───────────────────────────────────────────
+ 
+      // ── Банер / HUD-режим ─────────────────────────────────────────────────────
       function showBanner(type, txt) {
-        bannerEl.className   = "banner show " + type;
+        bannerEl.className   = `banner show ${type}`;
         bannerEl.textContent = txt;
       }
-      function hideBanner() {
-        bannerEl.className = "banner";
-      }
-
+      function hideBanner() { bannerEl.className = "banner"; }
       function setHudMode(mode) {
-        hud.className = "hud" + (mode ? " hud-" + mode : "");
+        hud.className = mode ? `hud hud-${mode}` : "hud";
       }
-
+ 
+      // ── Запуск / Результат ───────────────────────────────────────────────────
       function startSim() {
         if (S.phase !== "idle" && S.phase !== "done") return;
-        S.phase = "cruise";
-        S.obsActive = false;
-        S.cameraLocked = false;
-        S.rTraveled = 0;
-        S.bTraveled = 0;
-        S.cruiseSec = 0;
-        S.userReactSec = 0;
-        S.pedWalkTime = 0;
-        S.pedWalkDir = 1;
-
+        Object.assign(S, {
+          phase: "cruise",
+          obsActive: false, cameraLocked: false,
+          rTraveled: 0, bTraveled: 0,
+          cruiseSec: 0, userReactSec: 0,
+          pedWalkTime: 0, pedWalkDir: 1,
+          timeScale: 1, lockedPxM: 0,
+        });
         hideBanner();
         setHudMode("cruise");
-        speedWrap.style.opacity = "0.4";
+        speedWrap.style.opacity       = "0.4";
         speedWrap.style.pointerEvents = "none";
       }
-
+ 
       function showResult() {
         const t = Math.floor(S.kmh / 10);
-        hudMainLabel.textContent = "✅ Зупинковий шлях";
-        hudMainVal.textContent   = S.total;
-        hudMainSub.textContent   = `${t} × ${t} = ${S.total} м · реакція ${S.react} м + гальмо ${S.brake} м`;
+        hudMainLabel.textContent      = "✅ Зупинковий шлях";
+        hudMainVal.textContent        = S.total;
+        hudMainSub.textContent        = `${t} × ${t} = ${S.total} м · реакція ${S.react} м + гальмо ${S.brake} м`;
         setHudMode("result");
-        speedWrap.style.opacity      = "1";
+        speedWrap.style.opacity       = "1";
         speedWrap.style.pointerEvents = "auto";
         S.phase = "idle";
       }
-
-      /* ── Малювання ── */
+ 
+      // ═════════════════════════════════════════════════════════════════════════
+      // ── Малювання ────────────────────────────────────────────────────────────
+      // ═════════════════════════════════════════════════════════════════════════
+ 
+      // Допоміжна: скруглений прямокутник
       function rr(x, y, w, h, r) {
         ctx.beginPath();
         ctx.moveTo(x + r, y);
-        ctx.arcTo(x + w, y, x + w, y + h, r);
-        ctx.arcTo(x + w, y + h, x, y + h, r);
-        ctx.arcTo(x, y + h, x, y, r);
-        ctx.arcTo(x, y, x + w, y, r);
+        ctx.arcTo(x + w, y,     x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x,     y + h, r);
+        ctx.arcTo(x,     y + h, x,     y,     r);
+        ctx.arcTo(x,     y,     x + w, y,     r);
         ctx.closePath();
       }
-
-      // Функція малювання дорожніх знаків
-      // Перероблена математика: groundY - це лінія "на землі", де має стояти стовпчик
+ 
       function drawRoadSign(x, groundY, text, type, side) {
         ctx.save();
         ctx.font = "bold 12px 'Barlow Condensed', sans-serif";
-        const tw = ctx.measureText(text).width;
-        const w = tw + 16;
-        const h = 22;
+        const tw   = ctx.measureText(text).width;
+        const w    = tw + 16;
+        const h    = 22;
         const poleH = 16;
-        const sx = side === 1 ? x : x - w;
-        
-        // Верхня координата самого знаку
-        const sy = groundY - poleH - h;
-
-        // Стовпчик малюється від низу знаку (groundY - poleH) до самої землі (groundY)
+        const sx   = side === 1 ? x : x - w;
+        const sy   = groundY - poleH - h;
+ 
+        // Стовп
         ctx.fillStyle = "#94a3b8";
         ctx.fillRect(sx + w / 2 - 1.5, groundY - poleH, 3, poleH);
-
-        // Білий фон
-        ctx.fillStyle = "#ffffff";
+ 
+        // Табличка
         rr(sx, sy, w, h, 3);
+        ctx.fillStyle = "#ffffff";
         ctx.fill();
-
-        // Синя рамка
+ 
+        rr(sx + 1.5, sy + 1.5, w - 3, h - 3, 2);
         ctx.strokeStyle = "#005a9c";
         ctx.lineWidth = 1.5;
-        rr(sx + 1.5, sy + 1.5, w - 3, h - 3, 2);
         ctx.stroke();
-
-        // Текст
+ 
         ctx.fillStyle = "#000000";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(text.toUpperCase(), sx + w / 2, sy + h / 2 + 1);
-
-        // Перекреслення (для знаків 5.50 - Кінець зони)
-        if (type === 'end') {
+ 
+        // Червона діагональ = "кінець" відрізку
+        if (type === "end") {
           ctx.strokeStyle = "#da251d";
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.moveTo(sx + 2, sy + h - 2);
+          ctx.moveTo(sx + 2,     sy + h - 2);
           ctx.lineTo(sx + w - 2, sy + 2);
           ctx.stroke();
         }
-
         ctx.restore();
       }
-
+ 
       function drawCar(cx, cy, color, braking) {
         ctx.save();
         ctx.translate(cx, cy);
+ 
+        // Тінь
         ctx.fillStyle = "rgba(0,0,0,0.38)";
         rr(-CAR_W / 2 + 2, -CAR_H / 2 + 2, CAR_W, CAR_H, CAR_R);
         ctx.fill();
+ 
+        // Кузов
         ctx.fillStyle = color;
         rr(-CAR_W / 2, -CAR_H / 2, CAR_W, CAR_H, CAR_R);
         ctx.fill();
+ 
+        // Вікна
         ctx.fillStyle = "rgba(15,23,42,0.85)";
-        rr(-11, -20, 22, 16, 3);
-        ctx.fill();
-        rr(-11, 6, 22, 12, 3);
-        ctx.fill();
+        rr(-11, -20, 22, 16, 3); ctx.fill();
+        rr(-11,   6, 22, 12, 3); ctx.fill();
+ 
+        // Фари
         ctx.fillStyle = "#fef9c3";
         ctx.fillRect(-13, -CAR_H / 2, 6, 3);
-        ctx.fillRect(7, -CAR_H / 2, 6, 3);
+        ctx.fillRect(  7, -CAR_H / 2, 6, 3);
+ 
+        // Стоп-сигнали
+        ctx.shadowBlur = 0; // гарантовано скидаємо перед умовою
         if (braking) {
           ctx.shadowColor = "#ef4444";
-          ctx.shadowBlur = 14;
-          ctx.fillStyle = "#ff2222";
+          ctx.shadowBlur  = 14;
+          ctx.fillStyle   = "#ff2222";
           ctx.fillRect(-13, CAR_H / 2 - 4, 7, 4);
-          ctx.fillRect(6, CAR_H / 2 - 4, 7, 4);
-          ctx.shadowBlur = 0;
+          ctx.fillRect(  6, CAR_H / 2 - 4, 7, 4);
+          ctx.shadowBlur  = 0; // скидаємо після glow
         } else {
           ctx.fillStyle = "#7f1d1d";
           ctx.fillRect(-13, CAR_H / 2 - 4, 7, 3);
-          ctx.fillRect(6, CAR_H / 2 - 4, 7, 3);
+          ctx.fillRect(  6, CAR_H / 2 - 4, 7, 3);
         }
         ctx.restore();
       }
-
+ 
       function drawPedestrian(x, y, walkTime, phase) {
         ctx.save();
-
-        let bodyColor, headFill, glowColor;
         const isFinished = phase === "done" || (phase === "idle" && S.cameraLocked);
-
+ 
+        let bodyColor, headFill, glowColor;
         if (phase === "react") {
-          bodyColor = "#ef4444";
-          headFill = "#fecaca";
-          glowColor = "rgba(239,68,68,0.6)";
+          bodyColor = "#ef4444"; headFill = "#fecaca"; glowColor = "rgba(239,68,68,0.6)";
         } else if (isFinished) {
-          bodyColor = "#22c55e";
-          headFill = "#dcfce7";
-          glowColor = "rgba(34,197,94,0.6)";
+          bodyColor = "#22c55e"; headFill = "#dcfce7"; glowColor = "rgba(34,197,94,0.6)";
         } else {
-          bodyColor = "#f97316";
-          headFill = "#ffedd5";
-          glowColor = null;
+          bodyColor = "#f97316"; headFill = "#ffedd5"; glowColor = null;
         }
-
-        if (glowColor) {
-          ctx.shadowColor = glowColor;
-          ctx.shadowBlur = 14;
-        }
-
+ 
+        // Тінь-еліпс
         ctx.fillStyle = "rgba(0,0,0,0.3)";
         ctx.beginPath();
         ctx.ellipse(x, y + 11, 9, 3, 0, 0, Math.PI * 2);
         ctx.fill();
-
-        if (glowColor) {
-          ctx.shadowColor = glowColor;
-          ctx.shadowBlur = 14;
-        }
-
-        const t = walkTime || 0;
-        const p = t * Math.PI * 2 * 2.5;
+ 
+        if (glowColor) { ctx.shadowColor = glowColor; ctx.shadowBlur = 14; }
+ 
+        // Анімація кінцівок
+        const p        = (walkTime || 0) * Math.PI * 2 * PED_STRIDE_FREQ;
         const legSwing = Math.sin(p) * 6;
         const armSwing = -Math.sin(p) * 5;
-
+ 
         ctx.strokeStyle = bodyColor;
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-
+        ctx.lineWidth   = 3;
+        ctx.lineCap     = "round";
+        ctx.lineJoin    = "round";
+ 
+        // Тіло, ноги, руки — батч з одним strokeStyle
         ctx.beginPath();
-        ctx.moveTo(x, y - 1);
-        ctx.lineTo(x, y + 5);
+        ctx.moveTo(x, y - 1); ctx.lineTo(x, y + 5);
+        ctx.moveTo(x, y + 5); ctx.lineTo(x - 3 - legSwing, y + 13);
+        ctx.moveTo(x, y + 5); ctx.lineTo(x + 3 + legSwing, y + 13);
+        ctx.moveTo(x, y + 1); ctx.lineTo(x - 4 + armSwing, y + 6);
+        ctx.moveTo(x, y + 1); ctx.lineTo(x + 4 + armSwing, y + 6);
         ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(x, y + 5);
-        ctx.lineTo(x - 3 - legSwing, y + 13);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(x, y + 5);
-        ctx.lineTo(x + 3 + legSwing, y + 13);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(x, y + 1);
-        ctx.lineTo(x - 4 + armSwing, y + 6);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(x, y + 1);
-        ctx.lineTo(x + 4 + armSwing, y + 6);
-        ctx.stroke();
-
-        ctx.fillStyle = headFill;
+ 
+        // Голова
+        ctx.fillStyle   = headFill;
         ctx.strokeStyle = bodyColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth   = 2;
         ctx.beginPath();
         ctx.arc(x, y - 6, 5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-
+ 
         ctx.shadowBlur = 0;
         ctx.restore();
       }
-
-      /* ── Пішохідний перехід ── */
+ 
       function drawCrosswalk(cx, roadW, y) {
         const stripeH = 9;
-        const count = 7; 
-        const totalH = count * stripeH;
-        const startY = y - totalH / 2;
-
+        const count   = 7;
+        const startY  = y - (count * stripeH) / 2;
         for (let i = 0; i < count; i++) {
-          const sy = startY + i * stripeH;
           ctx.fillStyle = i % 2 === 0 ? "#ffffff" : "#dc2626";
-          ctx.fillRect(cx - roadW / 2, sy, roadW, stripeH);
+          ctx.fillRect(cx - roadW / 2, startY + i * stripeH, roadW, stripeH);
         }
       }
-
-      /* ── Main draw ── */
-      function draw(layout) {
-        const { W, H, roadW, cx, carY, pxM } = layout;
-
+ 
+      function drawSlowMoBorder(W, H) {
+        if (!S.cameraLocked || S.timeScale >= 0.98) return;
+        const baseAlpha = Math.max(0, 0.55 - S.timeScale * 0.5);
+        const pulse     = 0.5 + 0.5 * Math.sin(Date.now() / 380);
+        const alpha     = baseAlpha * (0.65 + 0.35 * pulse);
+ 
+        ctx.save();
+        ctx.strokeStyle = `rgba(34,211,238,${alpha})`;
+        ctx.lineWidth   = 5;
+        ctx.strokeRect(2.5, 2.5, W - 5, H - 5);
+        ctx.font        = "bold 10px 'Barlow Condensed', sans-serif";
+        ctx.fillStyle   = `rgba(34,211,238,${Math.min(1, alpha * 1.6)})`;
+        ctx.textAlign   = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("◉ SLOW MO", 10, 8);
+        ctx.restore();
+      }
+ 
+      // ── Головна функція відтворення ──────────────────────────────────────────
+      function draw() {
+        const { W, H, roadW, cx, carY } = layout;
+        const pxM = S.cameraLocked ? S.lockedPxM : layout.pxM;
+ 
+        // Фон
         ctx.fillStyle = "#052e16";
         ctx.fillRect(0, 0, W, H);
+ 
+        // Дорога
         ctx.fillStyle = "#1e293b";
         ctx.fillRect(cx - roadW / 2, 0, roadW, H);
+ 
+        // Узбіччя
         ctx.strokeStyle = "#334155";
-        ctx.lineWidth = 2;
+        ctx.lineWidth   = 2;
         ctx.beginPath();
-        ctx.moveTo(cx - roadW / 2, 0);
-        ctx.lineTo(cx - roadW / 2, H);
+        ctx.moveTo(cx - roadW / 2, 0); ctx.lineTo(cx - roadW / 2, H);
+        ctx.moveTo(cx + roadW / 2, 0); ctx.lineTo(cx + roadW / 2, H);
         ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(cx + roadW / 2, 0);
-        ctx.lineTo(cx + roadW / 2, H);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(226,232,240,0.4)";
-        ctx.lineWidth = 3;
+ 
+        // Розмітка
+        ctx.strokeStyle    = "rgba(226,232,240,0.4)";
+        ctx.lineWidth      = 3;
         ctx.setLineDash([22, 18]);
         ctx.lineDashOffset = -S.roadOff;
         ctx.beginPath();
-        ctx.moveTo(cx, 0);
-        ctx.lineTo(cx, H);
+        ctx.moveTo(cx, 0); ctx.lineTo(cx, H);
         ctx.stroke();
         ctx.setLineDash([]);
-
-        S.trees.forEach((t) => {
+ 
+        // Дерева
+        for (const t of S.trees) {
           const tx = cx + (roadW / 2 + 28) * t.side;
           ctx.fillStyle = "#713f12";
           ctx.fillRect(tx - 3, t.y, 6, 16);
           ctx.fillStyle = "#14532d";
-          ctx.beginPath();
-          ctx.arc(tx, t.y, t.sz, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(tx, t.y, t.sz, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = "#166534";
-          ctx.beginPath();
-          ctx.arc(tx - 3, t.y - 4, t.sz * 0.6, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
+          ctx.beginPath(); ctx.arc(tx - 3, t.y - 4, t.sz * 0.6, 0, Math.PI * 2); ctx.fill();
+        }
+ 
+        // Пішохідний перехід
         if (S.obsActive) {
           const crossY = S.cameraLocked ? S.crosswalkY : carY - S.pedDist * pxM;
           drawCrosswalk(cx, roadW, crossY);
         }
-
-        const CROSSWALK_HALF = 31.5; 
-        const STOP_GAP = 6;
-        let activeCarY;
-        
+ 
+        // Лінії шляхів + підписи (тільки з фіксованою камерою)
+        let activeCarY = carY;
+ 
         if (S.cameraLocked) {
-          const traveledPx = (S.rTraveled + S.bTraveled) * pxM;
-          const stopY = S.crosswalkY + CROSSWALK_HALF + STOP_GAP + CAR_H / 2;
-          const rawY = S.fixedDangerY - traveledPx;
-          activeCarY = Math.max(rawY, stopY);
-          
-          const dangerY = S.fixedDangerY;
-          const rpx = S.rTraveled * pxM;
-
-          // Жовта зона 
+          const traveledPx   = (S.rTraveled + S.bTraveled) * pxM;
+          const stopY        = S.fixedDangerY + CAR_H / 2 - S.total * pxM;
+          activeCarY         = Math.max(S.fixedDangerY + CAR_H / 2 - traveledPx, stopY);
+ 
+          const dangerY      = S.fixedDangerY;
+          const rpx          = S.rTraveled * pxM;
+          const carNoseY     = activeCarY - CAR_H / 2;
+          const bpxReal      = (dangerY - rpx) - carNoseY;
+ 
+          // Жовта зона (шлях реакції)
           if (rpx > 0) {
             ctx.fillStyle = "rgba(234,179,8,0.22)";
             ctx.fillRect(cx - roadW / 2 + 2, dangerY - rpx, roadW - 4, rpx);
           }
-
-          // Червона зона 
-          const carNoseY = activeCarY - CAR_H / 2;
-          const redTop = carNoseY;
-          const redBot = dangerY - rpx;
-          const bpxReal = redBot - redTop;
-          
+          // Червона зона (гальмовий шлях)
           if (bpxReal > 0) {
             ctx.fillStyle = "rgba(239,68,68,0.28)";
-            ctx.fillRect(cx - roadW / 2 + 2, redTop, roadW - 4, bpxReal);
+            ctx.fillRect(cx - roadW / 2 + 2, carNoseY, roadW - 4, bpxReal);
           }
-
-          // Початкова жовта лінія реакції
+ 
+          // Жовта лінія старту гальмування
           ctx.fillStyle = "#facc15";
           ctx.fillRect(cx - roadW / 2, dangerY, roadW, 3);
-          
-          // Відображення дорожніх знаків (тепер groundY - це лінія з якої починається стовпчик)
-          const isFinished = S.phase === "done" || (S.phase === "idle" && S.cameraLocked);
+ 
+          const isFinished         = S.phase === "done" || (S.phase === "idle" && S.cameraLocked);
           const isBrakingOrFinished = S.phase === "brake" || isFinished;
-          
-          const signRightX = cx + roadW / 2 + 8;
-          const signLeftX  = cx - roadW / 2 - 8;
-
-          // 1. Початок реакції - база стовпчика рівно на жовтій лінії початку
-          drawRoadSign(signRightX, dangerY, "Час реакції", 'start', 1);
-
+          const signR = cx + roadW / 2 + 8;
+          const signL = cx - roadW / 2 - 8;
+ 
+          drawRoadSign(signR, dangerY, "Час реакції", "start", 1);
           if (isBrakingOrFinished) {
-            const reactEndWorldY = dangerY - rpx;
-            // 2. Кінець реакції - зліва, в один ряд з початком червоної зони
-            drawRoadSign(signLeftX, reactEndWorldY, "Час реакції", 'end', -1);
-            // 3. Початок гальмівного шляху - справа, в один ряд з початком червоної зони
-            drawRoadSign(signRightX, reactEndWorldY, "Гальмівний шлях", 'start', 1);
+            const reactEndY = dangerY - rpx;
+            drawRoadSign(signL, reactEndY, "Час реакції", "end", -1);
+            drawRoadSign(signR, reactEndY, "Гальмівний шлях", "start", 1);
           }
-
           if (isFinished) {
-            // 4. Кінець гальмівного шляху - зліва, база стовпчика рівно на лінії закінчення червоної зони (ніс авто)
-            const brakeEndWorldY = redTop;
-            drawRoadSign(signLeftX, brakeEndWorldY, "Гальмівний шлях", 'end', -1);
+            drawRoadSign(signL, carNoseY, "Гальмівний шлях", "end", -1);
           }
-          
-        } else {
-          activeCarY = carY;
         }
-
+ 
+        // Пішохід
         if (S.obsActive) {
           const pedY = S.cameraLocked ? S.fixedPedY : carY - S.pedDist * pxM;
           drawPedestrian(S.pedX, pedY, S.pedWalkTime, S.phase);
         }
-
+ 
+        // Автомобіль
         const braking = S.phase === "brake" || S.phase === "done" || (S.phase === "idle" && S.cameraLocked);
         drawCar(cx, activeCarY, "#3b82f6", braking);
+ 
+        // Рамка slow-mo — поверх усього
+        drawSlowMoBorder(W, H);
       }
-
-      /* ── Game loop ── */
+ 
+      // ═════════════════════════════════════════════════════════════════════════
+      // ── Ігровий цикл ─────────────────────────────────────────────────────────
+      // ═════════════════════════════════════════════════════════════════════════
+ 
+      // moveWorld винесено з функції loop, щоб не створювати нову функцію щокадру
+      function moveWorld(spd, dt) {
+        if (spd <= 0) return;
+        const px = spd * layout.pxM * dt;
+        S.roadOff = (S.roadOff + px) % 40;
+        for (const t of S.trees) {
+          t.y += px;
+          if (t.y > layout.H + 40) {
+            t.y   = -40;
+            t.side = Math.random() > 0.5 ? 1 : -1;
+          }
+        }
+      }
+ 
       let lastT = 0;
       function loop(ts) {
         if (!lastT) lastT = ts;
-        let dt = (ts - lastT) / 1000;
-        if (dt > 0.1) dt = 0.1;
-        lastT = ts;
-
-        const layout = layoutState;
-        const { pxM, carY, roadW } = layout;
-        const mps = (S.kmh * 1000) / 3600;
-
+        let dt = Math.min((ts - lastT) / 1000, 0.1);
+        lastT  = ts;
+ 
+        const { carY, roadW } = layout;
+        const mps         = (S.kmh * 1000) / 3600;
+        const effectiveDt = S.cameraLocked ? dt * S.timeScale : dt;
+ 
+        // Поточна швидкість (з урахуванням гальмування)
         let curMps = mps;
         if (S.phase === "brake") {
           const decel = (mps * mps) / (2 * S.brake);
@@ -850,98 +808,91 @@
         } else if (S.phase === "done" || S.phase === "idle") {
           curMps = 0;
         }
-
-        function moveWorld(spd) {
-          if (spd <= 0) return;
-          const px = spd * pxM * dt;
-          S.roadOff = (S.roadOff + px) % 40;
-          S.trees.forEach((t) => {
-            t.y += px;
-            if (t.y > layout.H + 40) {
-              t.y = -40;
-              t.side = Math.random() > 0.5 ? 1 : -1;
-            }
-          });
-        }
-
+ 
+        // Рух світу і фізика (тільки в активних фазах)
         if (S.phase !== "idle" && S.phase !== "done") {
-          if (!S.cameraLocked) moveWorld(curMps);
-
+          if (!S.cameraLocked) moveWorld(curMps, dt);
+ 
           if (S.obsActive) {
-            if (!S.cameraLocked) {
-              S.pedDist -= curMps * dt;
-            }
-
+            if (!S.cameraLocked) S.pedDist -= curMps * dt;
+ 
             if (S.phase === "react") {
-              S.rTraveled += curMps * dt;
-              S.userReactSec += dt;
+              S.rTraveled    += curMps * effectiveDt;
+              S.userReactSec += effectiveDt;
             } else if (S.phase === "brake") {
-              S.bTraveled += curMps * dt;
+              S.bTraveled += curMps * effectiveDt;
             }
-
-            const pedSpeed = roadW / 4.5; 
-            S.pedX += pedSpeed * S.pedWalkDir * dt;
-            S.pedWalkTime += dt;
+ 
+            S.pedX        += (roadW / 4.5) * S.pedWalkDir * effectiveDt;
+            S.pedWalkTime += effectiveDt;
           }
         }
-
-        if ((S.phase === "done" || (S.phase === "idle" && S.cameraLocked)) && S.obsActive) {
-          S.pedX += (roadW / 4.5) * S.pedWalkDir * dt;
+ 
+        // Пішохід продовжує рухатись після завершення
+        if (S.obsActive && (S.phase === "done" || (S.phase === "idle" && S.cameraLocked))) {
+          S.pedX        += (roadW / 4.5) * S.pedWalkDir * dt;
           S.pedWalkTime += dt;
         }
-
+ 
+        // ── Машина станів ────────────────────────────────────────────────────
         if (S.phase === "cruise") {
           S.cruiseSec += dt;
           if (!S.obsActive && S.cruiseSec > 0.5) {
-            S.obsActive = true;
-            S.rTraveled = 0;
-            S.bTraveled = 0;
-            S.userReactSec = 0;
-
-            const maxVisibleDist = layout.carY / layout.pxM;
-            S.pedDist = Math.max(S.total + (curMps * 1.5), maxVisibleDist + 1);
-
-            S.pedX = layout.cx - layout.roadW / 2 - 2;
-            S.pedWalkDir = 1; 
-            S.pedWalkTime = 0;
-            S.phase = "anticipate";
+            Object.assign(S, {
+              obsActive: true,
+              rTraveled: 0, bTraveled: 0, userReactSec: 0,
+              pedDist: Math.max(S.total + mps * 1.5, carY / layout.pxM + 1),
+              pedX: layout.cx - roadW / 2 - 2,
+              pedWalkDir: 1, pedWalkTime: 0,
+              phase: "anticipate",
+            });
             setHudMode("cruise");
             showBanner("warn", "👀 ОЦІНЮЙТЕ ОБСТАНОВКУ");
           }
+ 
         } else if (S.phase === "anticipate") {
           if (S.pedDist <= S.total) {
-            S.phase = "react";
-
+            S.phase        = "react";
             S.cameraLocked = true;
-            S.fixedDangerY = carY;
-            const crossY = carY - S.total * pxM;
-            S.fixedPedY = Math.max(crossY, 80);
-            S.crosswalkY = S.fixedPedY;
-
-            S.rTraveled = 0;
-            S.bTraveled = 0;
-            S.userReactSec = 0;
+            S.fixedDangerY = carY - CAR_H / 2;
+ 
+            const availableH = S.fixedDangerY - 80 - CROSSWALK_HALF - STOP_GAP;
+            S.lockedPxM = Math.min(layout.pxM, availableH / Math.max(S.total, 1));
+ 
+            const crossY  = S.fixedDangerY - S.total * S.lockedPxM - CROSSWALK_HALF - STOP_GAP;
+            S.crosswalkY  = Math.max(crossY, 80);
+            S.fixedPedY   = S.crosswalkY;
+ 
+            const brakeAvgTime = (2 * S.brake) / mps;
+            S.timeScale = Math.min(1.0, TARGET_DURATION / (1.2 + brakeAvgTime));
+ 
+            S.rTraveled = 0; S.bTraveled = 0; S.userReactSec = 0;
             setHudMode("react");
             hideBanner();
           }
+ 
         } else if (S.phase === "react") {
           if (S.userReactSec >= 1.2 || S.rTraveled >= S.react) {
             S.phase = "brake";
             setHudMode("brake");
           }
+ 
         } else if (S.phase === "brake") {
           if (curMps <= STOP_SPEED_MPS || S.bTraveled >= S.brake) {
             S.bTraveled = S.brake;
-            S.phase = "done";
+            S.phase     = "done";
             setTimeout(showResult, 1000);
           }
         }
-
-        updateHudMain();
-        draw(layout);
+ 
+        // HUD оновлюємо лише в потрібних фазах
+        if (S.phase === "react" || S.phase === "brake") updateHudMain();
+ 
+        draw();
         requestAnimationFrame(loop);
       }
-
+ 
+      // ── Старт ────────────────────────────────────────────────────────────────
       resize();
       applyCalc(S.kmh);
       requestAnimationFrame(loop);
